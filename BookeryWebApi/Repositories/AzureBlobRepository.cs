@@ -39,9 +39,9 @@ namespace BookeryWebApi.Repositories
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
         }
 
-        public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Container container)
+        public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
@@ -54,16 +54,16 @@ namespace BookeryWebApi.Repositories
             {
                 foreach (var blobItem in page.Values)
                 {
-                    blobs.Add(new BlobDto {Id = Guid.Parse(blobItem.Name), Name = blobItem.Metadata["name"], IdContainer = container.Id});
+                    blobs.Add(new BlobDto {Id = Guid.Parse(blobItem.Name), Name = blobItem.Metadata["name"], IdContainer = idContainer});
                 }
             }
 
             return blobs;
         }
 
-        public async Task<IEnumerable<Blob>> GetBlobsAsync(Container container)
+        public async Task<IEnumerable<Blob>> GetBlobsAsync(Guid idContainer)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
@@ -72,7 +72,7 @@ namespace BookeryWebApi.Repositories
 
             var downloadedBlobs = new List<Blob>();
 
-            var blobs = await ListBlobsAsync(container);
+            var blobs = await ListBlobsAsync(idContainer);
 
             foreach (var blobDto in blobs)
             {
@@ -83,9 +83,9 @@ namespace BookeryWebApi.Repositories
             return downloadedBlobs;
         }
 
-        public async Task AddBlobAsync(Container container, Blob blob)
+        public async Task AddBlobAsync(Guid idContainer, Blob blob)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
