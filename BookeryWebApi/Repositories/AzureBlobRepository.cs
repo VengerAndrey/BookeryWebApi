@@ -14,8 +14,6 @@ namespace BookeryWebApi.Repositories
         private readonly BlobServiceClient _blobServiceClient;
         private readonly IDataRepository _dataRepository;
 
-        private object _lock = new object();
-
         public AzureBlobRepository(BlobServiceClient blobServiceClient, IDataRepository dataRepository)
         {
             _blobServiceClient = blobServiceClient;
@@ -25,18 +23,6 @@ namespace BookeryWebApi.Repositories
         public async Task<IEnumerable<Container>> ListContainersAsync()
         {
             return await _dataRepository.ListContainersAsync();
-
-            /*var containers = new List<Container>();
-
-            await foreach (var container in _blobServiceClient.GetBlobContainersAsync().AsPages())
-            {
-                foreach (var blobContainerItem in container.Values)
-                {
-                    containers.Add(new Container {Id = Guid.Parse(blobContainerItem.Name), Name = "todo"});
-                }
-            }
-
-            return containers;*/
         }
 
         public async Task AddContainerAsync(Container container)
@@ -51,8 +37,6 @@ namespace BookeryWebApi.Repositories
 
             await _dataRepository.AddContainerAsync(container);
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
-
-            //if(await response.Value.ExistsAsync())
         }
 
         public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Container container)

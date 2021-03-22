@@ -8,7 +8,7 @@ using BookeryWebApi.Models;
 
 namespace BookeryWebApi.Repositories
 {
-    interface IBlobRepository
+    public interface IBlobRepository
     {
         Task<IEnumerable<Container>> ListContainersAsync();
         Task AddContainerAsync(Container container);
