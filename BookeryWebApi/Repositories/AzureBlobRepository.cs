@@ -25,8 +25,10 @@ namespace BookeryWebApi.Repositories
             return await _dataRepository.ListContainersAsync();
         }
 
-        public async Task AddContainerAsync(Container container)
+        public async Task AddContainerAsync(ContainerCreateDto containerCreateDto)
         {
+            var container = new Container {Id = Guid.NewGuid(), Name = containerCreateDto.Name};
+
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
 
             if (await blobContainerClient.ExistsAsync())
@@ -72,20 +74,26 @@ namespace BookeryWebApi.Repositories
 
             var downloadedBlobs = new List<Blob>();
 
-            var blobs = await ListBlobsAsync(idContainer);
+            var blobDtos = await ListBlobsAsync(idContainer);
 
-            foreach (var blobDto in blobs)
+            foreach (var blobDto in blobDtos)
             {
                 var blobClient = blobContainerClient.GetBlobClient(blobDto.Id.ToString());
-                downloadedBlobs.Add(new Blob {BlobDto = blobDto, Content = blobClient.DownloadAsync().Result.Value.Content});
+                downloadedBlobs.Add(new Blob
+                {
+                    Id = blobDto.Id,
+                    Name = blobDto.Name,
+                    IdContainer = blobDto.IdContainer,
+                    Content = blobClient.DownloadAsync().Result.Value.Content
+                });
             }
 
             return downloadedBlobs;
         }
 
-        public async Task AddBlobAsync(Guid idContainer, Blob blob)
+        public async Task AddBlobAsync(BlobCreateDto blobCreateDto)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobCreateDto.IdContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
@@ -96,9 +104,9 @@ namespace BookeryWebApi.Repositories
 
             var metadata = new Dictionary<string, string>();
 
-            metadata.Add("name", blob.BlobDto.Name);
+            metadata.Add("name", blobCreateDto.Name);
 
-            await blobClient.UploadAsync(blob.Content, metadata: metadata);
+            await blobClient.UploadAsync(blobCreateDto.Content, metadata: metadata);
         }
     }
 }
