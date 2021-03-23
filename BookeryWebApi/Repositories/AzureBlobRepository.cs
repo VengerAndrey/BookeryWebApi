@@ -25,7 +25,7 @@ namespace BookeryWebApi.Repositories
             return await _dataRepository.ListContainersAsync();
         }
 
-        public async Task AddContainerAsync(ContainerCreateDto containerCreateDto)
+        public async Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto)
         {
             var container = new Container {Id = Guid.NewGuid(), Name = containerCreateDto.Name};
 
@@ -34,11 +34,12 @@ namespace BookeryWebApi.Repositories
             if (await blobContainerClient.ExistsAsync())
             {
                 //Container re-creation 
-                return;
+                return null;
             }
 
             await _dataRepository.AddContainerAsync(container);
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
+            return container;
         }
 
         public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer)
@@ -61,6 +62,28 @@ namespace BookeryWebApi.Repositories
             }
 
             return blobs;
+        }
+
+        public async Task<Blob> GetBlobAsync(BlobDownloadDto blobDownloadDto)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobDownloadDto.IdContainer.ToString());
+
+            if (!await blobContainerClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobClient = blobContainerClient.GetBlobClient(blobDownloadDto.Id.ToString());
+
+            var content = await blobClient.DownloadAsync();
+
+            return new Blob
+            {
+                Id = blobDownloadDto.Id,
+                Name = (await blobClient.GetPropertiesAsync()).Value.Metadata["name"],
+                IdContainer = blobDownloadDto.IdContainer,
+                Content = content.Value.Content
+            };
         }
 
         public async Task<IEnumerable<Blob>> GetBlobsAsync(Guid idContainer)
@@ -91,22 +114,26 @@ namespace BookeryWebApi.Repositories
             return downloadedBlobs;
         }
 
-        public async Task AddBlobAsync(BlobCreateDto blobCreateDto)
+        public async Task<BlobDto> AddBlobAsync(BlobCreateDto blobCreateDto)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobCreateDto.IdContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
-                return;
+                return null;
             }
 
-            var blobClient = blobContainerClient.GetBlobClient(Guid.NewGuid().ToString());
+            var id = Guid.NewGuid();
+
+            var blobClient = blobContainerClient.GetBlobClient(id.ToString());
 
             var metadata = new Dictionary<string, string>();
 
             metadata.Add("name", blobCreateDto.Name);
 
             await blobClient.UploadAsync(blobCreateDto.Content, metadata: metadata);
+
+            return new BlobDto {Id = id, Name = blobCreateDto.Name, IdContainer = blobCreateDto.IdContainer};
         }
     }
 }
