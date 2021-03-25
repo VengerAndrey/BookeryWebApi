@@ -12,6 +12,9 @@ namespace BookeryWebApi.Repositories
     {
         Task<IEnumerable<Container>> ListContainersAsync();
         Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto);
+        Task<IEnumerable<Container>> DeleteContainersAsync();
+        Task<Container> ListContainerAsync(Guid idContainer);
+        Task<Container> DeleteContainerAsync(Guid idContainer);
         Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer);
         Task<Blob> GetBlobAsync(BlobDownloadDto blobDownloadDto);
         Task<IEnumerable<Blob>> GetBlobsAsync(Guid idContainer);
