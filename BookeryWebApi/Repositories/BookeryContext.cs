@@ -10,7 +10,5 @@ namespace BookeryWebApi.Repositories
     public class BookeryContext : DbContext
     {
         public BookeryContext(DbContextOptions<BookeryContext> options) : base(options) { }
-
-        public DbSet<Container> Containers { get; set; }
     }
 }

@@ -8,9 +8,7 @@ namespace BookeryWebApi.Models
 {
     public class Container
     {
-        [Key]
         public Guid Id { get; set; }
-        [Required]
         public string Name { get; set; }
     }
 }

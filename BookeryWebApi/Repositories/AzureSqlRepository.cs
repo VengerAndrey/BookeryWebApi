@@ -15,20 +15,5 @@ namespace BookeryWebApi.Repositories
         {
             _context = context;
         }
-
-        public async Task<IEnumerable<Container>> ListContainersAsync()
-        {
-            return await Task.Run(() => _context.Containers);
-        }
-
-        public async Task<Container> AddContainerAsync(Container container)
-        {
-            await _context.Containers.AddAsync(container);
-            lock (_lock)
-            {
-                _context.SaveChanges();
-            }
-            return container;
-        }
     }
 }
