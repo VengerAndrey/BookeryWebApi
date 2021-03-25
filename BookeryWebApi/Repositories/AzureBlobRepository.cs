@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using BookeryWebApi.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BookeryWebApi.Repositories
 {
@@ -19,86 +17,6 @@ namespace BookeryWebApi.Repositories
             _blobServiceClient = blobServiceClient;
         }
 
-        public async Task<IEnumerable<Container>> ListContainersAsync()
-        {
-            var containers = new List<Container>();
-            await foreach (var page in _blobServiceClient.GetBlobContainersAsync(BlobContainerTraits.Metadata).AsPages())
-            {
-                foreach (var blobContainerItem in page.Values)
-                {
-                    containers.Add(new Container
-                    {
-                        Id = Guid.Parse(blobContainerItem.Name),
-                        Name = blobContainerItem.Properties.Metadata["name"]
-                    });
-                }
-            }
-            return containers;
-        }
-
-        public async Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto)
-        {
-            var container = new Container {Id = Guid.NewGuid(), Name = containerCreateDto.Name};
-
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
-
-            await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
-            await blobContainerClient.SetMetadataAsync(new Dictionary<string, string> { { "name", container.Name } });
-
-            return container;
-        }
-
-        public async Task<IEnumerable<Container>> DeleteContainersAsync()
-        {
-            var toDelete = await ListContainersAsync();
-            var deleted = new List<Container>();
-
-            foreach (var container in toDelete)
-            {
-                await _blobServiceClient.DeleteBlobContainerAsync(container.Id.ToString());
-                deleted.Add(container);
-            }
-
-            return deleted;
-        }
-
-        public async Task<Container> ListContainerAsync(Guid idContainer)
-        {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
-
-            if (await blobContainerClient.ExistsAsync())
-            {
-                var container = new Container
-                {
-                    Id = idContainer,
-                    Name = (await blobContainerClient.GetPropertiesAsync()).Value.Metadata["name"]
-                };
-                return container;
-            }
-
-            return null;
-        }
-
-        public async Task<Container> DeleteContainerAsync(Guid idContainer)
-        {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
-
-            if (await blobContainerClient.ExistsAsync())
-            {
-                var container = new Container
-                {
-                    Id = idContainer,
-                    Name = (await blobContainerClient.GetPropertiesAsync()).Value.Metadata["name"]
-                };
-
-                await _blobServiceClient.DeleteBlobContainerAsync(idContainer.ToString());
-
-                return container;
-            }
-
-            return null;
-        }
-
         public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
@@ -108,42 +26,24 @@ namespace BookeryWebApi.Repositories
                 return null;
             }
 
-            var blobs = new List<BlobDto>();
+            var blobDtos = new List<BlobDto>();
 
             await foreach (var page in blobContainerClient.GetBlobsAsync(BlobTraits.Metadata).AsPages())
             {
                 foreach (var blobItem in page.Values)
                 {
-                    blobs.Add(new BlobDto {Id = Guid.Parse(blobItem.Name), Name = blobItem.Metadata["name"], IdContainer = idContainer});
+                    blobDtos.Add(new BlobDto { 
+                        Id = Guid.Parse(blobItem.Name), 
+                        Name = blobItem.Metadata["name"], 
+                        IdContainer = idContainer
+                    });
                 }
             }
 
-            return blobs;
+            return blobDtos;
         }
 
-        public async Task<Blob> GetBlobAsync(BlobDownloadDto blobDownloadDto)
-        {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobDownloadDto.IdContainer.ToString());
-
-            if (!await blobContainerClient.ExistsAsync())
-            {
-                return null;
-            }
-
-            var blobClient = blobContainerClient.GetBlobClient(blobDownloadDto.Id.ToString());
-
-            var content = await blobClient.DownloadAsync();
-
-            return new Blob
-            {
-                Id = blobDownloadDto.Id,
-                Name = (await blobClient.GetPropertiesAsync()).Value.Metadata["name"],
-                IdContainer = blobDownloadDto.IdContainer,
-                Content = content.Value.Content
-            };
-        }
-
-        public async Task<IEnumerable<Blob>> GetBlobsAsync(Guid idContainer)
+        public async Task<BlobDto> AddBlobAsync(Guid idContainer, BlobUploadDto blobUploadDto)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
@@ -152,45 +52,146 @@ namespace BookeryWebApi.Repositories
                 return null;
             }
 
-            var downloadedBlobs = new List<Blob>();
+            var blobId = Guid.NewGuid();
 
-            var blobDtos = await ListBlobsAsync(idContainer);
+            var blobClient = blobContainerClient.GetBlobClient(blobId.ToString());
 
-            foreach (var blobDto in blobDtos)
-            {
-                var blobClient = blobContainerClient.GetBlobClient(blobDto.Id.ToString());
-                downloadedBlobs.Add(new Blob
-                {
-                    Id = blobDto.Id,
-                    Name = blobDto.Name,
-                    IdContainer = blobDto.IdContainer,
-                    Content = blobClient.DownloadAsync().Result.Value.Content
-                });
-            }
+            var blobMetadata = new Dictionary<string, string> {{"name", blobUploadDto.Name}};
+            var blobContent = new MemoryStream(Convert.FromBase64String(blobUploadDto.ContentBase64));
 
-            return downloadedBlobs;
+            await blobClient.UploadAsync(blobContent, metadata: blobMetadata);
+
+            return new BlobDto { Id = blobId, Name = blobUploadDto.Name, IdContainer = idContainer };
         }
 
-        public async Task<BlobDto> AddBlobAsync(BlobCreateDto blobCreateDto)
+        public async Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blobCreateDto.IdContainer.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
                 return null;
             }
 
-            var id = Guid.NewGuid();
+            var toDelete = await ListBlobsAsync(idContainer);
+            var deleted = new List<BlobDto>();
 
-            var blobClient = blobContainerClient.GetBlobClient(id.ToString());
+            foreach (var blobDto in toDelete)
+            {
+                await blobContainerClient.DeleteBlobAsync(blobDto.Id.ToString());
+                deleted.Add(blobDto);
+            }
 
-            var metadata = new Dictionary<string, string>();
+            return deleted;
+        }
 
-            metadata.Add("name", blobCreateDto.Name);
+        public async Task<BlobDto> ListBlobAsync(Guid idContainer, Guid idBlob)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
-            await blobClient.UploadAsync(blobCreateDto.Content, metadata: metadata);
+            if (!await blobContainerClient.ExistsAsync())
+            {
+                return null;
+            }
 
-            return new BlobDto {Id = id, Name = blobCreateDto.Name, IdContainer = blobCreateDto.IdContainer};
+            var blobClient = blobContainerClient.GetBlobClient(idBlob.ToString());
+
+            if (!await blobClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            return new BlobDto
+            {
+                Id = idBlob, 
+                Name = (await blobClient.GetPropertiesAsync()).Value.Metadata["name"],
+                IdContainer = idContainer
+            };
+        }
+
+        public async Task<Blob> GetBlobAsync(Guid idContainer, Guid idBlob)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
+
+            if (!await blobContainerClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobClient = blobContainerClient.GetBlobClient(idBlob.ToString());
+
+            var blobDownloadInfo = await blobClient.DownloadAsync();
+            byte[] content;
+            await using (var memoryStream = new MemoryStream())
+            {
+                await blobDownloadInfo.Value.Content.CopyToAsync(memoryStream);
+                content = memoryStream.ToArray();
+            }
+
+            return new Blob
+            {
+                Id = idBlob,
+                Name = (await blobClient.GetPropertiesAsync()).Value.Metadata["name"],
+                IdContainer = idContainer,
+                ContentBase64 = Convert.ToBase64String(content)
+            };
+        }
+
+        public async Task<BlobDto> PutBlobAsync(Guid idContainer, Guid idBlob, BlobUploadDto blobUploadDto)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
+
+            if (!await blobContainerClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobClient = blobContainerClient.GetBlobClient(idBlob.ToString());
+
+            if (!await blobClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobMetadata = new Dictionary<string, string> { { "name", blobUploadDto.Name } };
+            var blobContent = new MemoryStream(Convert.FromBase64String(blobUploadDto.ContentBase64));
+
+            await blobClient.UploadAsync(blobContent, metadata: blobMetadata);
+
+            return new BlobDto
+            {
+                Id = idBlob,
+                Name = blobUploadDto.Name,
+                IdContainer = idContainer
+            };
+        }
+
+        public async Task<BlobDto> DeleteBlobAsync(Guid idContainer, Guid idBlob)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
+
+            if (!await blobContainerClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobClient = blobContainerClient.GetBlobClient(idBlob.ToString());
+
+            if (!await blobClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var blobDto = new BlobDto
+            {
+                Id = idBlob,
+                Name = (await blobClient.GetPropertiesAsync()).Value.Metadata["name"],
+                IdContainer = idContainer
+            };
+
+            await blobClient.DeleteAsync();
+
+            return blobDto;
         }
     }
 }

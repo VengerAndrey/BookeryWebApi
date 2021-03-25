@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Azure.Storage.Blobs.Models;
 
 namespace BookeryWebApi.Models
 {
@@ -12,6 +7,6 @@ namespace BookeryWebApi.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Guid IdContainer { get; set; }
-        public Stream Content { get; set; }
+        public string ContentBase64 { get; set; }
     }
 }
