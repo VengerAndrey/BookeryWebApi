@@ -9,7 +9,6 @@ namespace BookeryWebApi.Repositories
     public interface IDataRepository
     {
         Task<IEnumerable<Container>> ListContainersAsync();
-        Task AddContainerAsync(Container container);
-        Task AddContainersAsync(List<Container> containers);
+        Task<Container> AddContainerAsync(Container container);
     }
 }

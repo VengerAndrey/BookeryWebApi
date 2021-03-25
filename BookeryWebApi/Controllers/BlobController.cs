@@ -14,16 +14,18 @@ namespace BookeryWebApi.Controllers
     public class BlobController : ControllerBase
     {
         private readonly IBlobRepository _blobRepository;
+        private readonly IDataRepository _dataRepository;
 
-        public BlobController(IBlobRepository blobRepository)
+        public BlobController(IBlobRepository blobRepository, IDataRepository dataRepository)
         {
             _blobRepository = blobRepository;
+            _dataRepository = dataRepository;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetContainers()
         {
-            var containers = await _blobRepository.ListContainersAsync();
+            var containers = await _dataRepository.ListContainersAsync();
             return Ok(containers);
         }
 
@@ -49,12 +51,15 @@ namespace BookeryWebApi.Controllers
         {
             var container = await _blobRepository.AddContainerAsync(containerCreateDto);
 
-            if (container == null)
+            if (container is null)
                 return Problem("Container is already exists.");
 
-            return Created(
-                HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + HttpContext.Request.Path + "/" +
-                container.Id, container);
+            container = await _dataRepository.AddContainerAsync(container);
+
+            if (container is null)
+                return Problem("Enable to create a container.");
+
+            return Created(Request.Scheme + "://" + Request.Host + Request.Path + container.Id, container);
         }
     }
 }

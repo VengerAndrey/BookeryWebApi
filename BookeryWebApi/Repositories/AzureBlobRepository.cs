@@ -12,17 +12,16 @@ namespace BookeryWebApi.Repositories
     public class AzureBlobRepository : IBlobRepository
     {
         private readonly BlobServiceClient _blobServiceClient;
-        private readonly IDataRepository _dataRepository;
 
         public AzureBlobRepository(BlobServiceClient blobServiceClient, IDataRepository dataRepository)
         {
             _blobServiceClient = blobServiceClient;
-            _dataRepository = dataRepository;
         }
 
         public async Task<IEnumerable<Container>> ListContainersAsync()
         {
-            return await _dataRepository.ListContainersAsync();
+            //return await _dataRepository.ListContainersAsync();
+            return null;
         }
 
         public async Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto)
@@ -32,12 +31,12 @@ namespace BookeryWebApi.Repositories
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
 
             if (await blobContainerClient.ExistsAsync())
-            {
+            {   
                 //Container re-creation 
                 return null;
             }
 
-            await _dataRepository.AddContainerAsync(container);
+            //await _dataRepository.AddContainerAsync(container);
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
             return container;
         }

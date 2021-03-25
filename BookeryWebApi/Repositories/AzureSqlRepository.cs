@@ -9,7 +9,7 @@ namespace BookeryWebApi.Repositories
     public class AzureSqlRepository : IDataRepository
     {
         private readonly BookeryContext _context;
-        private object _lock = new object();
+        private readonly object _lock = new object();
 
         public AzureSqlRepository(BookeryContext context)
         {
@@ -21,25 +21,14 @@ namespace BookeryWebApi.Repositories
             return await Task.Run(() => _context.Containers);
         }
 
-        public async Task AddContainerAsync(Container container)
+        public async Task<Container> AddContainerAsync(Container container)
         {
-            await Task.Run(() =>
+            await _context.Containers.AddAsync(container);
+            lock (_lock)
             {
-                lock (_lock)
-                {
-                    _context.Containers.Add(container);
-                    _context.SaveChanges();
-                }
-            });
-        }
-
-        public async Task AddContainersAsync(List<Container> containers)
-        {
-            await Task.Run(() =>
-            {
-                _context.Containers.AddRange(containers);
                 _context.SaveChanges();
-            });
+            }
+            return container;
         }
     }
 }
