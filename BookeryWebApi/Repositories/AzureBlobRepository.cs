@@ -20,8 +20,19 @@ namespace BookeryWebApi.Repositories
 
         public async Task<IEnumerable<Container>> ListContainersAsync()
         {
-            //return await _dataRepository.ListContainersAsync();
-            return null;
+            var containers = new List<Container>();
+            await foreach (var page in _blobServiceClient.GetBlobContainersAsync(BlobContainerTraits.Metadata).AsPages())
+            {
+                foreach (var blobContainerItem in page.Values)
+                {
+                    containers.Add(new Container
+                    {
+                        Id = Guid.Parse(blobContainerItem.Name),
+                        Name = blobContainerItem.Properties.Metadata["name"]
+                    });
+                }
+            }
+            return containers;
         }
 
         public async Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto)
@@ -30,14 +41,9 @@ namespace BookeryWebApi.Repositories
 
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
 
-            if (await blobContainerClient.ExistsAsync())
-            {   
-                //Container re-creation 
-                return null;
-            }
-
-            //await _dataRepository.AddContainerAsync(container);
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
+            await blobContainerClient.SetMetadataAsync(new Dictionary<string, string> { { "name", container.Name } });
+
             return container;
         }
 

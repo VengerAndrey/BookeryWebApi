@@ -25,7 +25,7 @@ namespace BookeryWebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetContainers()
         {
-            var containers = await _dataRepository.ListContainersAsync();
+            var containers = await _blobRepository.ListContainersAsync();
             return Ok(containers);
         }
 
