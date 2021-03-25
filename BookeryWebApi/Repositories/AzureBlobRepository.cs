@@ -13,7 +13,7 @@ namespace BookeryWebApi.Repositories
     {
         private readonly BlobServiceClient _blobServiceClient;
 
-        public AzureBlobRepository(BlobServiceClient blobServiceClient, IDataRepository dataRepository)
+        public AzureBlobRepository(BlobServiceClient blobServiceClient)
         {
             _blobServiceClient = blobServiceClient;
         }

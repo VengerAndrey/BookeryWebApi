@@ -36,9 +36,9 @@ namespace BookeryWebApi
             services.AddControllers();
 
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
-            services.AddSingleton(x => 
-                new BookeryContext(new DbContextOptionsBuilder<BookeryContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
-            services.AddSingleton<IDataRepository, AzureSqlRepository>();
+            //services.AddSingleton(x => 
+            //    new BookeryContext(new DbContextOptionsBuilder<BookeryContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
+            //services.AddSingleton<IDataRepository, AzureSqlRepository>();
             services.AddSingleton<IBlobRepository, AzureBlobRepository>();
 
             services.AddSwaggerGen(c =>
