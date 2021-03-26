@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Azure.Storage.Blobs;
+using BookeryWebApi.Common;
 using BookeryWebApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +27,7 @@ namespace BookeryWebApi
 
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
             services.AddSingleton(x => 
-                new BookeryContext(new DbContextOptionsBuilder<BookeryContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
+                new DatabaseContext(new DbContextOptionsBuilder<DatabaseContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
             services.AddSingleton<IContainerRepository, AzureContainerRepository>();
             services.AddSingleton<IBlobRepository, AzureBlobRepository>();
 
