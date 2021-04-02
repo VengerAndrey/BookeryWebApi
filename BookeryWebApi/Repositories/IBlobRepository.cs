@@ -8,7 +8,7 @@ namespace BookeryWebApi.Repositories
     public interface IBlobRepository
     {
         Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer);
-        Task<BlobDto> AddBlobAsync(Guid idContainer, BlobUploadDto blobUploadDto);
+        Task<BlobDto> AddBlobAsync(Blob blob);
         Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer);
         Task<BlobDto> ListBlobAsync(Guid idContainer, Guid idBlob);
         Task<Blob> GetBlobAsync(Guid idContainer, Guid idBlob);

@@ -7,11 +7,15 @@ namespace BookeryWebApi.Repositories
 {
     public interface IDataRepository
     {
-        public Task<IEnumerable<Container>> ListContainers();
-        public Task<Container> AddContainer(Container container);
-        public Task<IEnumerable<Container>> DeleteContainers();
-        public Task<IEnumerable<BlobDto>> ListBlobs(Guid idContainer);
-        public Task<BlobDto> AddBlob(BlobDto blobDto);
-        public Task<IEnumerable<BlobDto>> DeleteBlobs(Guid idContainer);
+        public Task<IEnumerable<Container>> ListContainersAsync();
+        public Task<Container> AddContainerAsync(Container container);
+        public Task<IEnumerable<Container>> DeleteContainersAsync();
+        public Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer);
+        public Task<BlobDto> AddBlobAsync(BlobDto blobDto);
+        public Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer);
+        public Task<Container> DeleteContainerAsync(Guid idContainer);
+        public Task<BlobDto> ListBlobAsync(Guid idBlob);
+        public Task<BlobDto> PutBlobAsync(BlobDto blobDto);
+        public Task<BlobDto> DeleteBlobAsync(Guid idBlob);
     }
 }

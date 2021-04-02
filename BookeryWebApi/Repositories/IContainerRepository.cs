@@ -8,7 +8,7 @@ namespace BookeryWebApi.Repositories
     public interface IContainerRepository
     {
         Task<IEnumerable<Container>> ListContainersAsync();
-        Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto);
+        Task<Container> AddContainerAsync(Container container);
         Task<IEnumerable<Container>> DeleteContainersAsync();
         Task<Container> ListContainerAsync(Guid idContainer);
         Task<Container> DeleteContainerAsync(Guid idContainer);

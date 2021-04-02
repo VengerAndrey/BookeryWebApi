@@ -33,10 +33,8 @@ namespace BookeryWebApi.Repositories
             return containers;
         }
 
-        public async Task<Container> AddContainerAsync(ContainerCreateDto containerCreateDto)
+        public async Task<Container> AddContainerAsync(Container container)
         {
-            var container = new Container {Id = Guid.NewGuid(), Name = containerCreateDto.Name};
-
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
 
             await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());

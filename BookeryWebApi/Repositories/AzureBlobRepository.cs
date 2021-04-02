@@ -43,25 +43,23 @@ namespace BookeryWebApi.Repositories
             return blobDtos;
         }
 
-        public async Task<BlobDto> AddBlobAsync(Guid idContainer, BlobUploadDto blobUploadDto)
+        public async Task<BlobDto> AddBlobAsync(Blob blob)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(blob.IdContainer.ToString());
 
             if (!await blobContainerClient.ExistsAsync())
             {
                 return null;
             }
 
-            var blobId = Guid.NewGuid();
+            var blobClient = blobContainerClient.GetBlobClient(blob.Id.ToString());
 
-            var blobClient = blobContainerClient.GetBlobClient(blobId.ToString());
-
-            var blobMetadata = new Dictionary<string, string> {{"name", blobUploadDto.Name}};
-            var blobContent = new MemoryStream(Convert.FromBase64String(blobUploadDto.ContentBase64));
+            var blobMetadata = new Dictionary<string, string> {{"name", blob.Name}};
+            var blobContent = new MemoryStream(Convert.FromBase64String(blob.ContentBase64));
 
             await blobClient.UploadAsync(blobContent, metadata: blobMetadata);
 
-            return new BlobDto { Id = blobId, Name = blobUploadDto.Name, IdContainer = idContainer };
+            return new BlobDto { Id = blob.Id, Name = blob.Name, IdContainer = blob.IdContainer };
         }
 
         public async Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer)

@@ -30,6 +30,7 @@ namespace BookeryWebApi
                 new DatabaseContext(new DbContextOptionsBuilder<DatabaseContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
             services.AddSingleton<IContainerRepository, AzureContainerRepository>();
             services.AddSingleton<IBlobRepository, AzureBlobRepository>();
+            services.AddSingleton<IDataRepository, AzureSqlRepository>();
 
             services.AddSwaggerGen(c =>
             {
