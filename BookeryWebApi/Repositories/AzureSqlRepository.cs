@@ -84,6 +84,19 @@ namespace BookeryWebApi.Repositories
             });
         }
 
+        public async Task<Container> ListContainerAsync(Guid idContainer)
+        {
+            return await Task.Run(() =>
+            {
+                var containerEntity = _context.Containers.FirstOrDefault(x => x.Id == idContainer);
+
+                if (containerEntity is null)
+                    return null;
+
+                return new Container {Id = idContainer, Name = containerEntity.Name};
+            });
+        }
+
         public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer)
         {
             return await Task.Run(() =>
@@ -124,7 +137,7 @@ namespace BookeryWebApi.Repositories
             {
                 var deleted = new List<BlobDto>();
 
-                foreach (var blobEntity in _context.Blobs)
+                foreach (var blobEntity in _context.Blobs.Where(x => x.IdContainer == idContainer))
                 {
                     lock (_lock)
                     {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BookeryWebApi.Models;
@@ -11,13 +12,11 @@ namespace BookeryWebApi.Controllers
     [ApiController]
     public class ContainersController : ControllerBase
     {
-        private readonly IContainerRepository _containerRepository;
         private readonly IBlobRepository _blobRepository;
         private readonly IDataRepository _dataRepository;
 
-        public ContainersController(IContainerRepository containerRepository, IBlobRepository blobRepository, IDataRepository dataRepository)
+        public ContainersController(IBlobRepository blobRepository, IDataRepository dataRepository)
         {
-            _containerRepository = containerRepository;
             _blobRepository = blobRepository;
             _dataRepository = dataRepository;
         }
@@ -34,12 +33,10 @@ namespace BookeryWebApi.Controllers
         public async Task<IActionResult> AddContainer([FromBody] ContainerCreateDto containerCreateDto)
         {
             var container = new Container(containerCreateDto);
-            var containerRepositoryResult = await _containerRepository.AddContainerAsync(container);
             var containerDbResult = await _dataRepository.AddContainerAsync(container);
 
-            if (containerRepositoryResult is null || containerDbResult is null)
+            if (containerDbResult is null)
             {
-                await _containerRepository.DeleteContainerAsync(container.Id);
                 await _dataRepository.DeleteContainerAsync(container.Id);
                 return Problem("Unable to create a container.");
             }
@@ -50,17 +47,16 @@ namespace BookeryWebApi.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteContainers()
         {
-            var containersRepositoryResult = await _containerRepository.DeleteContainersAsync();
-            var containersDbResult = await _dataRepository.DeleteContainersAsync();
+            var containers = await _dataRepository.DeleteContainersAsync();
 
-            return Accepted(containersRepositoryResult.Intersect(containersDbResult));
+            return Accepted(containers);
         }
 
         [HttpGet]
         [Route("{idContainer}")]
         public async Task<IActionResult> ListContainer(Guid idContainer)
         {
-            var container = await _containerRepository.ListContainerAsync(idContainer);
+            var container = await _dataRepository.ListContainerAsync(idContainer);
 
             if (container is null)
             {
@@ -74,20 +70,14 @@ namespace BookeryWebApi.Controllers
         [Route("{idContainer}")]
         public async Task<IActionResult> DeleteContainer(Guid idContainer)
         {
-            var containerRepositoryResult = await _containerRepository.DeleteContainerAsync(idContainer);
-            var containerDbResult = await _dataRepository.DeleteContainerAsync(idContainer);
+            var container = await _dataRepository.DeleteContainerAsync(idContainer);
 
-            if (containerRepositoryResult is null || containerDbResult is null)
+            if (container is null)
             {
                 return NotFound();
             }
 
-            if (!containerRepositoryResult.Equals(containerDbResult))
-            {
-                return Problem("The problem occurred while trying to delete a container.");
-            }
-
-            return Accepted(containerRepositoryResult);
+            return Accepted(container);
         }
 
         [HttpGet]
@@ -115,7 +105,7 @@ namespace BookeryWebApi.Controllers
 
             if (blobDtoRepositoryResult is null || blobDtoDbResult is null)
             {
-                await _blobRepository.DeleteBlobAsync(blob.IdContainer, blob.Id);
+                await _blobRepository.DeleteBlobAsync(blob.Id);
                 await _dataRepository.DeleteBlobAsync(blob.Id);
                 return Problem("Unable to upload a blob.");
             }
@@ -127,10 +117,16 @@ namespace BookeryWebApi.Controllers
         [Route("{idContainer}/blobs")]
         public async Task<IActionResult> DeleteBlobs(Guid idContainer)
         {
-            var blobDtosRepositoryResult = await _blobRepository.DeleteBlobsAsync(idContainer);
-            var blobDtosDbResult = await _dataRepository.DeleteBlobsAsync(idContainer);
+            var blobDtosDbResult = (await _dataRepository.DeleteBlobsAsync(idContainer)).ToList();
+            var blobDtosRepositoryResult = new List<BlobDto>();
 
-            return Accepted(blobDtosRepositoryResult.Intersect(blobDtosDbResult));
+            foreach (var blobDto in blobDtosDbResult)
+            {
+                var deleted = await _blobRepository.DeleteBlobAsync(blobDto.Id);
+                blobDtosRepositoryResult.Add(deleted);
+            }
+
+            return Accepted(blobDtosDbResult.Intersect(blobDtosRepositoryResult));
         }
 
         [HttpGet]
@@ -151,7 +147,7 @@ namespace BookeryWebApi.Controllers
         [Route("{idContainer}/blobs/{idBlob}/download")]
         public async Task<IActionResult> GetBlob(Guid idContainer, Guid idBlob)
         {
-            var blob = await _blobRepository.GetBlobAsync(idContainer, idBlob);
+            var blob = await _blobRepository.GetBlobAsync(idBlob);
 
             if (blob is null)
             {
@@ -165,7 +161,7 @@ namespace BookeryWebApi.Controllers
         [Route("{idContainer}/blobs/{idBlob}")]
         public async Task<IActionResult> PutBlob(Guid idContainer, Guid idBlob, [FromBody] BlobUploadDto blobUploadDto)
         {
-            var blobDtoRepositoryResult = await _blobRepository.PutBlobAsync(idContainer, idBlob, blobUploadDto);
+            var blobDtoRepositoryResult = await _blobRepository.PutBlobAsync(idBlob, blobUploadDto);
             var blobDtoDbResult = await _dataRepository.PutBlobAsync(new BlobDto
                 {Id = idBlob, Name = blobUploadDto.Name, IdContainer = idContainer});
 
@@ -186,7 +182,7 @@ namespace BookeryWebApi.Controllers
         [Route("{idContainer}/blobs/{idBlob}")]
         public async Task<IActionResult> DeleteBlob(Guid idContainer, Guid idBlob)
         {
-            var blobDtoRepositoryResult = await _blobRepository.DeleteBlobAsync(idContainer, idBlob);
+            var blobDtoRepositoryResult = await _blobRepository.DeleteBlobAsync(idBlob);
             var blobDtoDbResult = await _dataRepository.DeleteBlobAsync(idBlob);
 
             if (blobDtoRepositoryResult is null || blobDtoDbResult is null)
