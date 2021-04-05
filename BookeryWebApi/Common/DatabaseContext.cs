@@ -1,5 +1,4 @@
 ﻿using BookeryWebApi.Entities;
-using BookeryWebApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookeryWebApi.Common

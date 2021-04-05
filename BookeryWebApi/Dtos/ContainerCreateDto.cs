@@ -1,4 +1,4 @@
-﻿namespace BookeryWebApi.Models
+﻿namespace BookeryWebApi.Dtos
 {
     public class ContainerCreateDto
     {

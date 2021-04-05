@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using BookeryWebApi.Common;
 using BookeryWebApi.Entities;
-using BookeryWebApi.Models;
 
 namespace BookeryWebApi.Repositories
 {
@@ -18,49 +17,27 @@ namespace BookeryWebApi.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Container>> ListContainersAsync()
+        public async Task<IEnumerable<ContainerEntity>> ListContainersAsync()
         {
-            return await Task.Run(() =>
-            {
-                var containers = new List<Container>();
-
-                foreach (var containerEntity in _context.Containers)
-                {
-                    containers.Add(new Container
-                    {
-                        Id = containerEntity.Id,
-                        Name = containerEntity.Name,
-                        OwnerLogin = containerEntity.OwnerLogin
-                    });
-                }
-
-                return containers;
-            });
+            return await Task.Run(() => _context.Containers);
         }
 
-        public async Task<Container> AddContainerAsync(Container container)
+        public async Task<ContainerEntity> AddContainerAsync(ContainerEntity containerEntity)
         {
-            var containerEntity = new ContainerEntity
-            {
-                Id = container.Id,
-                Name = container.Name,
-                OwnerLogin = container.OwnerLogin
-            };
-
             await _context.Containers.AddAsync(containerEntity);
             lock (_lock)
             {
                 _context.SaveChanges();
             }
 
-            return container;
+            return containerEntity;
         }
 
-        public async Task<IEnumerable<Container>> DeleteContainersAsync()
+        public async Task<IEnumerable<ContainerEntity>> DeleteContainersAsync()
         {
             return await Task.Run(() =>
             {
-                var deleted = new List<Container>();
+                var deleted = new List<ContainerEntity>();
 
                 foreach (var containerEntity in _context.Containers)
                 {
@@ -69,13 +46,7 @@ namespace BookeryWebApi.Repositories
                         _context.Remove(containerEntity);
                     }
 
-                    deleted.Add(new Container
-                    {
-                        Id = containerEntity.Id,
-                        Name = containerEntity.Name,
-                        OwnerLogin = containerEntity.OwnerLogin
-
-                    });
+                    deleted.Add(containerEntity);
                 }
                 lock (_lock)
                 {
@@ -86,58 +57,33 @@ namespace BookeryWebApi.Repositories
             });
         }
 
-        public async Task<Container> ListContainerAsync(Guid idContainer)
+        public async Task<ContainerEntity> ListContainerAsync(Guid idContainer)
         {
-            return await Task.Run(() =>
-            {
-                var containerEntity = _context.Containers.FirstOrDefault(x => x.Id == idContainer);
-
-                if (containerEntity is null)
-                    return null;
-
-                return new Container {Id = idContainer, Name = containerEntity.Name, OwnerLogin = containerEntity.OwnerLogin};
-            });
+            return await Task.Run(() => _context.Containers.FirstOrDefault(x => x.Id == idContainer));
         }
 
-        public async Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer)
+        public async Task<IEnumerable<BlobEntity>> ListBlobsAsync(Guid idContainer)
         {
-            return await Task.Run(() =>
-            {
-                var blobDtos = from x in _context.Blobs.AsParallel()
-                    where x.IdContainer == idContainer
-                    select new BlobDto
-                    {
-                        Id = x.Id,
-                        Name = x.Name,
-                        IdContainer = idContainer
-                    };
-
-                return blobDtos;
-            });
+            return await Task.Run(() => _context.Blobs.AsParallel().Where(x => x.IdContainer == idContainer));
         }
 
-        public async Task<BlobDto> AddBlobAsync(BlobDto blobDto)
+        public async Task<BlobEntity> AddBlobAsync(BlobEntity blobEntity)
         {
-            await _context.Blobs.AddAsync(new BlobEntity
-            {
-                Id = blobDto.Id,
-                Name = blobDto.Name,
-                IdContainer = blobDto.IdContainer
-            });
+            await _context.Blobs.AddAsync(blobEntity);
 
             lock (_lock)
             {
                 _context.SaveChanges();
             }
 
-            return blobDto;
+            return blobEntity;
         }
 
-        public async Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer)
+        public async Task<IEnumerable<BlobEntity>> DeleteBlobsAsync(Guid idContainer)
         {
             return await Task.Run(() =>
             {
-                var deleted = new List<BlobDto>();
+                var deleted = new List<BlobEntity>();
 
                 foreach (var blobEntity in _context.Blobs.Where(x => x.IdContainer == idContainer))
                 {
@@ -146,12 +92,7 @@ namespace BookeryWebApi.Repositories
                         _context.Remove(blobEntity);
                     }
 
-                    deleted.Add(new BlobDto()
-                    {
-                        Id = blobEntity.Id,
-                        Name = blobEntity.Name,
-                        IdContainer = blobEntity.IdContainer
-                    });
+                    deleted.Add(blobEntity);
                 }
                 lock (_lock)
                 {
@@ -162,7 +103,7 @@ namespace BookeryWebApi.Repositories
             });
         }
 
-        public async Task<Container> DeleteContainerAsync(Guid idContainer)
+        public async Task<ContainerEntity> DeleteContainerAsync(Guid idContainer)
         {
             return await Task.Run(() =>
             {
@@ -177,40 +118,36 @@ namespace BookeryWebApi.Repositories
                     _context.SaveChanges();
                 }
 
-                return new Container {Id = containerEntity.Id, Name = containerEntity.Name};
+                return containerEntity;
             });
         }
 
-        public async Task<BlobDto> ListBlobAsync(Guid idBlob)
+        public async Task<BlobEntity> ListBlobAsync(Guid idBlob)
+        {
+            return await Task.Run(() => _context.Blobs.FirstOrDefault(x => x.Id == idBlob));
+        }
+
+        public async Task<BlobEntity> PutBlobAsync(BlobEntity blobEntity)
         {
             return await Task.Run(() =>
             {
-                var blobEntity = _context.Blobs.FirstOrDefault(x => x.Id == idBlob);
+                var oldBlobEntity = _context.Blobs.FirstOrDefault(x => x.Id == blobEntity.Id);
 
-                if (blobEntity is null)
+                if (oldBlobEntity is null)
                     return null;
-
-                return new BlobDto {Id = blobEntity.Id, Name = blobEntity.Name, IdContainer = blobEntity.IdContainer};
-            });
-        }
-
-        public async Task<BlobDto> PutBlobAsync(BlobDto blobDto)
-        {
-            return await Task.Run(() =>
-            {
-                _context.Blobs.Update(new BlobEntity
-                    {Id = blobDto.Id, Name = blobDto.Name, IdContainer = blobDto.IdContainer});
 
                 lock (_lock)
                 {
+                    _context.Blobs.Remove(oldBlobEntity);
+                    _context.Blobs.Add(blobEntity);
                     _context.SaveChanges();
                 }
 
-                return blobDto;
+                return blobEntity;
             });
         }
 
-        public async Task<BlobDto> DeleteBlobAsync(Guid idBlob)
+        public async Task<BlobEntity> DeleteBlobAsync(Guid idBlob)
         {
             return await Task.Run(() =>
             {
@@ -225,7 +162,7 @@ namespace BookeryWebApi.Repositories
                     _context.SaveChanges();
                 }
 
-                return new BlobDto {Id = blobEntity.Id, Name = blobEntity.Name, IdContainer = blobEntity.IdContainer};
+                return blobEntity;
             });
         }
     }

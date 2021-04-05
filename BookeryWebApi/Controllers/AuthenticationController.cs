@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using BookeryWebApi.Common;
+using BookeryWebApi.Dtos;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookeryWebApi.Controllers
@@ -22,9 +23,9 @@ namespace BookeryWebApi.Controllers
 
         [HttpPost]
         [Route("token")]
-        public IActionResult Token([FromHeader(Name = "Username")] string login, [FromHeader(Name = "Password")] string password)
+        public IActionResult Token([FromBody] AuthenticationDto authenticationDto)
         {
-            var identity = GetIdentity(login, password);
+            var identity = GetIdentity(authenticationDto);
 
             if (identity is null)
             {
@@ -44,16 +45,17 @@ namespace BookeryWebApi.Controllers
 
             var response = new
             {
-                access_token = encodedJwt,
+                accessToken = encodedJwt,
                 username = identity.Name
             };
 
             return Ok(response);
         }
 
-        private ClaimsIdentity GetIdentity(string login, string password)
+        private ClaimsIdentity GetIdentity(AuthenticationDto authenticationDto)
         {
-            var userEntity = _context.Users.FirstOrDefault(x => x.Login == login && x.Password == password);
+            var userEntity = _context.Users.FirstOrDefault(x => x.Login == authenticationDto.Login &&
+                                                                x.Password == authenticationDto.Password);
 
             if (userEntity is null)
                 return null;

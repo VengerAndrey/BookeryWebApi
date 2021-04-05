@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BookeryWebApi.Models;
+using BookeryWebApi.Dtos;
 
 namespace BookeryWebApi.Repositories
 {
     public interface IContainerRepository
     {
-        Task<IEnumerable<Container>> ListContainersAsync();
-        Task<Container> AddContainerAsync(Container container);
-        Task<IEnumerable<Container>> DeleteContainersAsync();
-        Task<Container> ListContainerAsync(Guid idContainer);
-        Task<Container> DeleteContainerAsync(Guid idContainer);
+        Task<IEnumerable<ContainerDto>> ListContainersAsync();
+        Task<ContainerDto> AddContainerAsync(ContainerDto containerDto);
+        Task<IEnumerable<ContainerDto>> DeleteContainersAsync();
+        Task<ContainerDto> ListContainerAsync(Guid idContainer);
+        Task<ContainerDto> DeleteContainerAsync(Guid idContainer);
     }
 }

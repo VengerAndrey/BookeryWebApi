@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BookeryWebApi.Models;
+using BookeryWebApi.Entities;
 
 namespace BookeryWebApi.Repositories
 {
     public interface IDataRepository
     {
-        public Task<IEnumerable<Container>> ListContainersAsync();
-        public Task<Container> AddContainerAsync(Container container);
-        public Task<IEnumerable<Container>> DeleteContainersAsync();
-        public Task<Container> ListContainerAsync(Guid idContainer);
-        public Task<IEnumerable<BlobDto>> ListBlobsAsync(Guid idContainer);
-        public Task<BlobDto> AddBlobAsync(BlobDto blobDto);
-        public Task<IEnumerable<BlobDto>> DeleteBlobsAsync(Guid idContainer);
-        public Task<Container> DeleteContainerAsync(Guid idContainer);
-        public Task<BlobDto> ListBlobAsync(Guid idBlob);
-        public Task<BlobDto> PutBlobAsync(BlobDto blobDto);
-        public Task<BlobDto> DeleteBlobAsync(Guid idBlob);
+        public Task<IEnumerable<ContainerEntity>> ListContainersAsync();
+        public Task<ContainerEntity> AddContainerAsync(ContainerEntity containerEntity);
+        public Task<IEnumerable<ContainerEntity>> DeleteContainersAsync();
+        public Task<ContainerEntity> ListContainerAsync(Guid idContainer);
+        public Task<IEnumerable<BlobEntity>> ListBlobsAsync(Guid idContainer);
+        public Task<BlobEntity> AddBlobAsync(BlobEntity blobEntity);
+        public Task<IEnumerable<BlobEntity>> DeleteBlobsAsync(Guid idContainer);
+        public Task<ContainerEntity> DeleteContainerAsync(Guid idContainer);
+        public Task<BlobEntity> ListBlobAsync(Guid idBlob);
+        public Task<BlobEntity> PutBlobAsync(BlobEntity blobEntity);
+        public Task<BlobEntity> DeleteBlobAsync(Guid idBlob);
     }
 }

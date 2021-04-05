@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BookeryWebApi.Models;
+using BookeryWebApi.Dtos;
 
 namespace BookeryWebApi.Repositories
 {
     public interface IBlobRepository
     {
-        Task<BlobDto> AddBlobAsync(Blob blob);
-        Task<Blob> GetBlobAsync(Guid idBlob);
-        Task<BlobDto> PutBlobAsync(Guid idBlob, BlobUploadDto blobUploadDto);
-        Task<BlobDto> DeleteBlobAsync(Guid idBlob);
-        Task<IEnumerable<BlobDto>> DeleteBlobsAsync();
+        Task<BlobInfoDto> AddBlobAsync(BlobDto blobDto);
+        Task<BlobDto> GetBlobAsync(Guid idBlob);
+        Task<BlobInfoDto> PutBlobAsync(Guid idBlob, BlobUploadDto blobUploadDto);
+        Task<BlobInfoDto> DeleteBlobAsync(Guid idBlob);
+        Task<IEnumerable<BlobInfoDto>> DeleteBlobsAsync();
     }
 }

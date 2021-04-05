@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using BookeryWebApi.Models;
+using BookeryWebApi.Dtos;
 
 namespace BookeryWebApi.Repositories
 {
@@ -16,14 +16,14 @@ namespace BookeryWebApi.Repositories
             _blobServiceClient = blobServiceClient;
         }
 
-        public async Task<IEnumerable<Container>> ListContainersAsync()
+        public async Task<IEnumerable<ContainerDto>> ListContainersAsync()
         {
-            var containers = new List<Container>();
+            var containers = new List<ContainerDto>();
             await foreach (var page in _blobServiceClient.GetBlobContainersAsync(BlobContainerTraits.Metadata).AsPages())
             {
                 foreach (var blobContainerItem in page.Values)
                 {
-                    containers.Add(new Container
+                    containers.Add(new ContainerDto
                     {
                         Id = Guid.Parse(blobContainerItem.Name),
                         Name = blobContainerItem.Properties.Metadata["name"]
@@ -33,20 +33,20 @@ namespace BookeryWebApi.Repositories
             return containers;
         }
 
-        public async Task<Container> AddContainerAsync(Container container)
+        public async Task<ContainerDto> AddContainerAsync(ContainerDto containerDto)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(container.Id.ToString());
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(containerDto.Id.ToString());
 
-            await _blobServiceClient.CreateBlobContainerAsync(container.Id.ToString());
-            await blobContainerClient.SetMetadataAsync(new Dictionary<string, string> { { "name", container.Name } });
+            await _blobServiceClient.CreateBlobContainerAsync(containerDto.Id.ToString());
+            await blobContainerClient.SetMetadataAsync(new Dictionary<string, string> { { "name", containerDto.Name } });
 
-            return container;
+            return containerDto;
         }
 
-        public async Task<IEnumerable<Container>> DeleteContainersAsync()
+        public async Task<IEnumerable<ContainerDto>> DeleteContainersAsync()
         {
             var toDelete = await ListContainersAsync();
-            var deleted = new List<Container>();
+            var deleted = new List<ContainerDto>();
 
             foreach (var container in toDelete)
             {
@@ -57,13 +57,13 @@ namespace BookeryWebApi.Repositories
             return deleted;
         }
 
-        public async Task<Container> ListContainerAsync(Guid idContainer)
+        public async Task<ContainerDto> ListContainerAsync(Guid idContainer)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (await blobContainerClient.ExistsAsync())
             {
-                var container = new Container
+                var container = new ContainerDto
                 {
                     Id = idContainer,
                     Name = (await blobContainerClient.GetPropertiesAsync()).Value.Metadata["name"]
@@ -74,13 +74,13 @@ namespace BookeryWebApi.Repositories
             return null;
         }
 
-        public async Task<Container> DeleteContainerAsync(Guid idContainer)
+        public async Task<ContainerDto> DeleteContainerAsync(Guid idContainer)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(idContainer.ToString());
 
             if (await blobContainerClient.ExistsAsync())
             {
-                var container = new Container
+                var container = new ContainerDto
                 {
                     Id = idContainer,
                     Name = (await blobContainerClient.GetPropertiesAsync()).Value.Metadata["name"]

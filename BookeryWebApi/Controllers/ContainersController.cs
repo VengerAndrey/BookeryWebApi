@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using BookeryWebApi.Models;
+using BookeryWebApi.Dtos;
+using BookeryWebApi.Entities;
 using BookeryWebApi.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
@@ -28,116 +28,159 @@ namespace BookeryWebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> ListContainers()
         {
-            var containers = await _dataRepository.ListContainersAsync();
+            var containerEntities = await _dataRepository.ListContainersAsync();
 
-            return Ok(containers);
+            var containerDtos = new List<ContainerDto>();
+
+            foreach (var containerEntity in containerEntities)
+            {
+                containerDtos.Add(new ContainerDto(containerEntity));
+            }
+
+            return Ok(containerDtos);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddContainer([FromBody] ContainerCreateDto containerCreateDto)
         {
-            var container = new Container(containerCreateDto, User.Identity?.Name ?? "null");
-            var containerDbResult = await _dataRepository.AddContainerAsync(container);
+            var containerDto = new ContainerDto(containerCreateDto, User.Identity?.Name ?? "null");
+            var containerEntity = await _dataRepository.AddContainerAsync(containerDto.ToContainerEntity());
 
-            if (containerDbResult is null)
+            if (containerEntity is null)
             {
-                await _dataRepository.DeleteContainerAsync(container.Id);
+                await _dataRepository.DeleteContainerAsync(containerDto.Id);
                 return Problem("Unable to create a container.");
             }
 
-            return Created(Request.Scheme + "://" + Request.Host + Request.Path + container.Id, container);
+            return Created(Request.Scheme + "://" + Request.Host + Request.Path + containerDto.Id, containerDto);
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteContainers()
         {
-            var containers = await _dataRepository.DeleteContainersAsync();
+            var containerEntities = await _dataRepository.DeleteContainersAsync();
+            await _blobRepository.DeleteBlobsAsync();
 
-            return Accepted(containers);
+            var containerDtos = new List<ContainerDto>();
+
+            foreach (var containerEntity in containerEntities)
+            {
+                containerDtos.Add(new ContainerDto(containerEntity));
+            }
+
+            return Accepted(containerDtos);
         }
 
         [HttpGet]
         [Route("{idContainer}")]
         public async Task<IActionResult> ListContainer(Guid idContainer)
         {
-            var container = await _dataRepository.ListContainerAsync(idContainer);
+            var containerEntity = await _dataRepository.ListContainerAsync(idContainer);
 
-            if (container is null)
+            if (containerEntity is null)
             {
                 return NotFound();
             }
 
-            return Ok(container);
+            return Ok(new ContainerDto(containerEntity));
         }
 
         [HttpDelete]
         [Route("{idContainer}")]
         public async Task<IActionResult> DeleteContainer(Guid idContainer)
         {
-            var container = await _dataRepository.DeleteContainerAsync(idContainer);
+            var blobEntities = await _dataRepository.ListBlobsAsync(idContainer);
 
-            if (container is null)
+            foreach (var blobEntity in blobEntities)
+            {
+                await _blobRepository.DeleteBlobAsync(blobEntity.Id);
+            }
+
+            var containerEntity = await _dataRepository.DeleteContainerAsync(idContainer);
+
+            if (containerEntity is null)
             {
                 return NotFound();
             }
 
-            return Accepted(container);
+            return Accepted(new ContainerDto(containerEntity));
         }
 
         [HttpGet]
         [Route("{idContainer}/blobs")]
         public async Task<IActionResult> ListBlobs(Guid idContainer)
         {
-            var blobDtos = await _dataRepository.ListBlobsAsync(idContainer);
+            var blobEntities = await _dataRepository.ListBlobsAsync(idContainer);
 
-            if (blobDtos is null)
+            if (blobEntities is null)
             {
                 return NotFound();
             }
 
-            return Ok(blobDtos);
+            var blobInfoDtos = new List<BlobInfoDto>();
+
+            foreach (var blobEntity in blobEntities)
+            {
+                blobInfoDtos.Add(new BlobInfoDto(blobEntity));
+            }
+
+            return Ok(blobInfoDtos);
         }
 
         [HttpPost]
         [Route("{idContainer}/blobs")]
         public async Task<IActionResult> AddBlob(Guid idContainer, [FromBody] BlobUploadDto blobUploadDto)
         {
-            var blob = new Blob(blobUploadDto, idContainer);
+            var blob = new BlobDto(blobUploadDto, idContainer);
 
-            var blobDtoRepositoryResult = await _blobRepository.AddBlobAsync(blob);
-            var blobDtoDbResult = await _dataRepository.AddBlobAsync(new BlobDto(blob));
+            var repositoryResult = await _blobRepository.AddBlobAsync(blob);
+            var dbResult = await _dataRepository.AddBlobAsync(blob.ToBlobEntity());
 
-            if (blobDtoRepositoryResult is null || blobDtoDbResult is null)
+            if (repositoryResult is null || dbResult is null)
             {
                 await _blobRepository.DeleteBlobAsync(blob.Id);
                 await _dataRepository.DeleteBlobAsync(blob.Id);
                 return Problem("Unable to upload a blob.");
             }
 
-            return Created(Request.Scheme + "://" + Request.Host + Request.Path + "/" + blobDtoRepositoryResult.Id, blobDtoRepositoryResult);
+            return Created(Request.Scheme + "://" + Request.Host + Request.Path + "/" + repositoryResult.Id, repositoryResult);
         }
 
         [HttpDelete]
         [Route("{idContainer}/blobs")]
         public async Task<IActionResult> DeleteBlobs(Guid idContainer)
         {
-            var blobDtosDbResult = (await _dataRepository.DeleteBlobsAsync(idContainer)).ToList();
-            var blobDtosRepositoryResult = new List<BlobDto>();
+            var dbResult = (await _dataRepository.DeleteBlobsAsync(idContainer)).Select(x => new BlobInfoDto(x)).ToList();
+            var repositoryResult = new List<BlobInfoDto>();
 
-            foreach (var blobDto in blobDtosDbResult)
+            foreach (var blobDto in dbResult)
             {
                 var deleted = await _blobRepository.DeleteBlobAsync(blobDto.Id);
-                blobDtosRepositoryResult.Add(deleted);
+                repositoryResult.Add(deleted);
             }
 
-            return Accepted(blobDtosDbResult.Intersect(blobDtosRepositoryResult));
+            return Accepted(dbResult.Intersect(repositoryResult));
         }
 
         [HttpGet]
         [Route("{idContainer}/blobs/{idBlob}")]
         public async Task<IActionResult> ListBlob(Guid idContainer, Guid idBlob)
         {
-            var blobDto = await _dataRepository.ListBlobAsync(idBlob);
+            var blobEntity = await _dataRepository.ListBlobAsync(idBlob);
+
+            if (blobEntity is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new BlobInfoDto(blobEntity));
+        }
+
+        [HttpGet]
+        [Route("{idContainer}/blobs/{idBlob}/download")]
+        public async Task<IActionResult> GetBlob(Guid idContainer, Guid idBlob)
+        {
+            var blobDto = await _blobRepository.GetBlobAsync(idBlob);
 
             if (blobDto is null)
             {
@@ -147,59 +190,49 @@ namespace BookeryWebApi.Controllers
             return Ok(blobDto);
         }
 
-        [HttpGet]
-        [Route("{idContainer}/blobs/{idBlob}/download")]
-        public async Task<IActionResult> GetBlob(Guid idContainer, Guid idBlob)
-        {
-            var blob = await _blobRepository.GetBlobAsync(idBlob);
-
-            if (blob is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(blob);
-        }
-
         [HttpPut]
         [Route("{idContainer}/blobs/{idBlob}")]
         public async Task<IActionResult> PutBlob(Guid idContainer, Guid idBlob, [FromBody] BlobUploadDto blobUploadDto)
         {
-            var blobDtoRepositoryResult = await _blobRepository.PutBlobAsync(idBlob, blobUploadDto);
-            var blobDtoDbResult = await _dataRepository.PutBlobAsync(new BlobDto
-                {Id = idBlob, Name = blobUploadDto.Name, IdContainer = idContainer});
+            var repositoryResult = await _blobRepository.PutBlobAsync(idBlob, blobUploadDto);
+            var dbResult = await _dataRepository.PutBlobAsync(new BlobEntity
+            {
+                Id = idBlob,
+                Name = blobUploadDto.Name,
+                IdContainer = idContainer
+            });
 
-            if (blobDtoRepositoryResult is null || blobDtoDbResult is null)
+            if (repositoryResult is null || dbResult is null)
             {
                 return NotFound();
             }
 
-            if (!blobDtoRepositoryResult.Equals(blobDtoDbResult))
+            if (!repositoryResult.Equals(new BlobInfoDto(dbResult)))
             {
                 return Problem("The problem occurred while trying to put a blob.");
             }
 
-            return Accepted(blobDtoRepositoryResult);
+            return Accepted(repositoryResult);
         }
 
         [HttpDelete]
         [Route("{idContainer}/blobs/{idBlob}")]
         public async Task<IActionResult> DeleteBlob(Guid idContainer, Guid idBlob)
         {
-            var blobDtoRepositoryResult = await _blobRepository.DeleteBlobAsync(idBlob);
-            var blobDtoDbResult = await _dataRepository.DeleteBlobAsync(idBlob);
+            var repositoryResult = await _blobRepository.DeleteBlobAsync(idBlob);
+            var dbResult = await _dataRepository.DeleteBlobAsync(idBlob);
 
-            if (blobDtoRepositoryResult is null || blobDtoDbResult is null)
+            if (repositoryResult is null || dbResult is null)
             {
                 return NotFound();
             }
 
-            if (!blobDtoRepositoryResult.Equals(blobDtoDbResult))
+            if (!repositoryResult.Equals(new BlobInfoDto(dbResult)))
             {
                 return Problem("The problem occurred while trying to delete a blob.");
             }
 
-            return Accepted(blobDtoRepositoryResult);
+            return Accepted(repositoryResult);
         }
     }
 }
