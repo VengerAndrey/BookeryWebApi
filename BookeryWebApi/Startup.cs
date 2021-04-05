@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +8,9 @@ using Microsoft.OpenApi.Models;
 using Azure.Storage.Blobs;
 using BookeryWebApi.Common;
 using BookeryWebApi.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BookeryWebApi
 {
@@ -23,6 +26,23 @@ namespace BookeryWebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = AuthenticationOptions.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = AuthenticationOptions.Audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = AuthenticationOptions.GetSymmetricSecurityKey(),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
             services.AddControllers();
 
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
@@ -51,6 +71,7 @@ namespace BookeryWebApi
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

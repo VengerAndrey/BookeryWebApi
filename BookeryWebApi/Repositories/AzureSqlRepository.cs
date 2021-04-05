@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using BookeryWebApi.Common;
 using BookeryWebApi.Entities;
 using BookeryWebApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookeryWebApi.Repositories
 {
@@ -30,7 +29,8 @@ namespace BookeryWebApi.Repositories
                     containers.Add(new Container
                     {
                         Id = containerEntity.Id,
-                        Name = containerEntity.Name
+                        Name = containerEntity.Name,
+                        OwnerLogin = containerEntity.OwnerLogin
                     });
                 }
 
@@ -43,7 +43,8 @@ namespace BookeryWebApi.Repositories
             var containerEntity = new ContainerEntity
             {
                 Id = container.Id,
-                Name = container.Name
+                Name = container.Name,
+                OwnerLogin = container.OwnerLogin
             };
 
             await _context.Containers.AddAsync(containerEntity);
@@ -71,7 +72,8 @@ namespace BookeryWebApi.Repositories
                     deleted.Add(new Container
                     {
                         Id = containerEntity.Id,
-                        Name = containerEntity.Name
+                        Name = containerEntity.Name,
+                        OwnerLogin = containerEntity.OwnerLogin
 
                     });
                 }
@@ -93,7 +95,7 @@ namespace BookeryWebApi.Repositories
                 if (containerEntity is null)
                     return null;
 
-                return new Container {Id = idContainer, Name = containerEntity.Name};
+                return new Container {Id = idContainer, Name = containerEntity.Name, OwnerLogin = containerEntity.OwnerLogin};
             });
         }
 

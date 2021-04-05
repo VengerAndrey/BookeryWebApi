@@ -2,14 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using BookeryWebApi.Models;
 using BookeryWebApi.Repositories;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookeryWebApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
     public class ContainersController : ControllerBase
     {
         private readonly IBlobRepository _blobRepository;
@@ -21,6 +24,7 @@ namespace BookeryWebApi.Controllers
             _dataRepository = dataRepository;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> ListContainers()
         {
@@ -32,7 +36,7 @@ namespace BookeryWebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> AddContainer([FromBody] ContainerCreateDto containerCreateDto)
         {
-            var container = new Container(containerCreateDto);
+            var container = new Container(containerCreateDto, User.Identity?.Name ?? "null");
             var containerDbResult = await _dataRepository.AddContainerAsync(container);
 
             if (containerDbResult is null)

@@ -1,4 +1,5 @@
 ﻿using BookeryWebApi.Entities;
+using BookeryWebApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookeryWebApi.Common
@@ -9,5 +10,6 @@ namespace BookeryWebApi.Common
 
         public DbSet<ContainerEntity> Containers { get; set; }
         public DbSet<BlobEntity> Blobs { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
     }
 }
