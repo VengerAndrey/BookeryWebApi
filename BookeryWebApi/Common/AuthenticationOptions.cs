@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookeryWebApi.Common
@@ -11,7 +7,8 @@ namespace BookeryWebApi.Common
     {
         public const string Issuer = "BookeryServer";
         public const string Audience = "BookeryClient";
-        public const int Lifetime = 20;
+        public const int AccessTokenExpiration = 60;
+        public const int RefreshTokenExpiration = 300;
 
         private const string Key = "abcdefd12345!$%";
 

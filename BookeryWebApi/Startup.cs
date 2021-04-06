@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Azure.Storage.Blobs;
 using BookeryWebApi.Common;
 using BookeryWebApi.Repositories;
+using BookeryWebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -29,6 +30,7 @@ namespace BookeryWebApi
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.SaveToken = true;
                     options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -36,9 +38,9 @@ namespace BookeryWebApi
                         ValidIssuer = AuthenticationOptions.Issuer,
                         ValidateAudience = true,
                         ValidAudience = AuthenticationOptions.Audience,
-                        ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = AuthenticationOptions.GetSymmetricSecurityKey(),
+                        ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
                 });
@@ -50,6 +52,8 @@ namespace BookeryWebApi
                 new DatabaseContext(new DbContextOptionsBuilder<DatabaseContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
             services.AddSingleton<IBlobRepository, AzureBlobRepository>();
             services.AddSingleton<IDataRepository, AzureSqlRepository>();
+            services.AddSingleton<IJwtService, JwtService>();
+            services.AddHostedService<ExpiredTokenCleaner>();
 
             services.AddSwaggerGen(c =>
             {

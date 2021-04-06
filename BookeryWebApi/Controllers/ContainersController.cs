@@ -24,7 +24,6 @@ namespace BookeryWebApi.Controllers
             _dataRepository = dataRepository;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> ListContainers()
         {

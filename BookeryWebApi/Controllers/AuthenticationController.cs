@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using BookeryWebApi.Common;
-using BookeryWebApi.Dtos;
-using Microsoft.IdentityModel.Tokens;
+using BookeryWebApi.Dtos.Requests;
+using BookeryWebApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Net.Http.Headers;
 
 namespace BookeryWebApi.Controllers
 {
@@ -15,47 +16,90 @@ namespace BookeryWebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly DatabaseContext _context;
+        private readonly IJwtService _jwtService;
 
-        public AuthenticationController(DatabaseContext context)
+        public AuthenticationController(DatabaseContext context, IJwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         [HttpPost]
         [Route("token")]
-        public IActionResult Token([FromBody] AuthenticationDto authenticationDto)
+        public IActionResult Token([FromBody] AuthenticationRequest authenticationRequest)
         {
-            var identity = GetIdentity(authenticationDto);
+            var identity = GetIdentity(authenticationRequest);
 
             if (identity is null)
             {
-                return BadRequest("Invalid username or password.");
+                return Unauthorized("Invalid username or password.");
             }
 
-            var now = DateTime.UtcNow;
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, authenticationRequest.Login)
+            };
 
-            var jwt = new JwtSecurityToken(
-                issuer: AuthenticationOptions.Issuer,
-                audience: AuthenticationOptions.Audience,
-                notBefore: now,
-                claims: identity.Claims,
-                expires: now.Add(TimeSpan.FromSeconds(AuthenticationOptions.Lifetime)),
-                signingCredentials: new SigningCredentials(AuthenticationOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            var authenticationResult = _jwtService.Authenticate(authenticationRequest.Login, claims, DateTime.UtcNow);
 
             var response = new
             {
-                accessToken = encodedJwt,
-                username = identity.Name
+                username = identity.Name,
+                accessToken = authenticationResult.AccessToken,
+                refreshToken = authenticationResult.RefreshToken.Token
             };
 
             return Ok(response);
         }
 
-        private ClaimsIdentity GetIdentity(AuthenticationDto authenticationDto)
+        [HttpPost]
+        [Route("refreshToken")]
+        public IActionResult RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
         {
-            var userEntity = _context.Users.FirstOrDefault(x => x.Login == authenticationDto.Login &&
-                                                                x.Password == authenticationDto.Password);
+            var authorizationHeader = Request.Headers[HeaderNames.Authorization];
+            if (authorizationHeader.Count == 0)
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            var bearer = authorizationHeader[0];
+            if(!bearer.Contains("Bearer "))
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            var accessToken = bearer.Replace("Bearer ", "");
+            var authenticationResult = _jwtService.Refresh(accessToken, refreshRequest.RefreshToken, DateTime.UtcNow);
+
+            if (authenticationResult is null)
+            {
+                return Unauthorized("Invalid token.");
+            }
+
+            var response = new
+            {
+                username = authenticationResult.RefreshToken.Username,
+                accessToken = authenticationResult.AccessToken,
+                refreshToken = authenticationResult.RefreshToken.Token
+            };
+
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("logout")]
+        public IActionResult Logout()
+        {
+            _jwtService.ClearRefreshToken(User.Identity?.Name);
+
+            return Ok();
+        }
+
+        private ClaimsIdentity GetIdentity(AuthenticationRequest authenticationRequest)
+        {
+            var userEntity = _context.Users.FirstOrDefault(x => x.Login == authenticationRequest.Login &&
+                                                                x.Password == authenticationRequest.Password);
 
             if (userEntity is null)
                 return null;
