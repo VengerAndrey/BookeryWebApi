@@ -6,7 +6,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using BookeryWebApi.Common;
 using BookeryWebApi.Dtos;
-using BookeryWebApi.Dtos.Responses;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookeryWebApi.Services
@@ -15,7 +14,7 @@ namespace BookeryWebApi.Services
     {
         private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens = new ConcurrentDictionary<string, RefreshTokenDto>();
 
-        public AuthenticationResponse Authenticate(string username, Claim[] claims, DateTime now)
+        public Token Authenticate(string username, Claim[] claims, DateTime now)
         {
             var needAudience =
                 string.IsNullOrWhiteSpace(claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud)?.Value);
@@ -39,14 +38,14 @@ namespace BookeryWebApi.Services
 
             _refreshTokens.AddOrUpdate(refreshToken.Token, refreshToken, (s, dto) => refreshToken);
 
-            return new AuthenticationResponse
+            return new Token
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
         }
 
-        public AuthenticationResponse Refresh(string accessToken, string refreshToken, DateTime now)
+        public Token Refresh(string accessToken, string refreshToken, DateTime now)
         {
             var (principal, jwt) = DecodeJwt(accessToken);
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using BookeryWebApi.Common;
 using BookeryWebApi.Dtos.Requests;
+using BookeryWebApi.Dtos.Responses;
 using BookeryWebApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Net.Http.Headers;
@@ -42,11 +43,11 @@ namespace BookeryWebApi.Controllers
 
             var authenticationResult = _jwtService.Authenticate(authenticationRequest.Login, claims, DateTime.UtcNow);
 
-            var response = new
+            var response = new AuthenticationResponse
             {
-                username = identity.Name,
-                accessToken = authenticationResult.AccessToken,
-                refreshToken = authenticationResult.RefreshToken.Token
+                Username = identity.Name,
+                AccessToken = authenticationResult.AccessToken,
+                RefreshToken = authenticationResult.RefreshToken.Token
             };
 
             return Ok(response);
