@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using WebApi.Dtos.Requests;
+using Domain.Models.DTOs.Requests;
 using WebApi.Services;
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -35,12 +35,15 @@ namespace WebApi.Controllers
                 return Unauthorized("Invalid username or password.");
             }
 
+            var user = await _userService.GetByEmail(authenticationRequest.Email);
+
             var claims = new[]
             {
+                new Claim("UserId", user.Id.ToString()), 
                 new Claim(ClaimTypes.Name, authenticationRequest.Email)
             };
 
-            var response = _jwtService.Authenticate(authenticationRequest.Email, claims, DateTime.UtcNow);
+            var response = _jwtService.Authenticate(user.Id, authenticationRequest.Email, claims, DateTime.UtcNow);
 
             return Ok(response);
         }
@@ -93,6 +96,7 @@ namespace WebApi.Controllers
 
             var claims = new List<Claim>
             {
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Id.ToString()),
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, "DefaultRole")
             };

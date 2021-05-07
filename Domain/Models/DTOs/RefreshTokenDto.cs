@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebApi.Dtos
+namespace Domain.Models.DTOs
 {
     public class RefreshTokenDto
     {

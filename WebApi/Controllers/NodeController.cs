@@ -23,10 +23,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("email={email}")]
-        public async Task<IActionResult> GetUserNodes(string email)
+        [Route("userId={userId}")]
+        public async Task<IActionResult> GetUserNodes(int userId)
         {
-            var user = await _userService.GetByEmail(email);
+            var user = await _userService.Get(userId);
 
             if (user is null)
             {

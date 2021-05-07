@@ -4,8 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using WebApi.Dtos;
-using WebApi.Dtos.Responses;
+using Domain.Models.DTOs;
+using Domain.Models.DTOs.Responses;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
 
@@ -15,7 +15,7 @@ namespace WebApi.Services
     {
         private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens = new ConcurrentDictionary<string, RefreshTokenDto>();
 
-        public AuthenticationResponse Authenticate(string email, Claim[] claims, DateTime now)
+        public AuthenticationResponse Authenticate(int userId, string email, Claim[] claims, DateTime now)
         {
             var needAudience =
                 string.IsNullOrWhiteSpace(claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud)?.Value);
@@ -43,6 +43,7 @@ namespace WebApi.Services
 
             return new AuthenticationResponse
             {
+                UserId = userId,
                 Email = email,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken.Token,
@@ -59,19 +60,20 @@ namespace WebApi.Services
                 return null;
             }
 
-            var username = principal.Identity?.Name;
+            var email = principal.Identity?.Name;
 
             if (!_refreshTokens.TryGetValue(refreshToken, out var existingRefreshToken))
             {
                 return null;
             }
 
-            if (username != existingRefreshToken.Email || existingRefreshToken.ExpireAt < now)
+            if (email != existingRefreshToken.Email || existingRefreshToken.ExpireAt < now)
             {
                 return null;
             }
 
-            return Authenticate(username, principal.Claims.ToArray(), now);
+            return Authenticate(Int32.Parse(principal.Claims.FirstOrDefault(x => x.Type == "UserId")?
+                .Value ?? "-1"), email, principal.Claims.ToArray(), now);
         }
 
         public void ClearExpiredRefreshTokens(DateTime now)

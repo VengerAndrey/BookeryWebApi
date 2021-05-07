@@ -1,4 +1,4 @@
-﻿namespace WebApi.Dtos.Requests
+﻿namespace Domain.Models.DTOs.Requests
 {
     public class RefreshTokenRequest
     {
