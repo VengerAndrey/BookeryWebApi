@@ -1,35 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using BookeryWebApi.Common;
-using BookeryWebApi.Dtos.Requests;
-using BookeryWebApi.Dtos.Responses;
-using BookeryWebApi.Services;
+using System.Threading.Tasks;
+using WebApi.Dtos.Requests;
+using WebApi.Services;
+using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Net.Http.Headers;
 
-namespace BookeryWebApi.Controllers
+namespace WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly DatabaseContext _context;
         private readonly IJwtService _jwtService;
+        private readonly IUserService _userService;
 
-        public AuthenticationController(DatabaseContext context, IJwtService jwtService)
+        public AuthenticationController(IJwtService jwtService, IUserService userService)
         {
-            _context = context;
             _jwtService = jwtService;
+            _userService = userService;
         }
 
         [HttpPost]
         [Route("token")]
-        public IActionResult Token([FromBody] AuthenticationRequest authenticationRequest)
+        public async Task<IActionResult> Token([FromBody] AuthenticationRequest authenticationRequest)
         {
-            var identity = GetIdentity(authenticationRequest);
+            var identity = await GetIdentity(authenticationRequest);
 
             if (identity is null)
             {
@@ -38,17 +37,10 @@ namespace BookeryWebApi.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, authenticationRequest.Login)
+                new Claim(ClaimTypes.Name, authenticationRequest.Email)
             };
 
-            var authenticationResult = _jwtService.Authenticate(authenticationRequest.Login, claims, DateTime.UtcNow);
-
-            var response = new AuthenticationResponse
-            {
-                Username = identity.Name,
-                AccessToken = authenticationResult.AccessToken,
-                RefreshToken = authenticationResult.RefreshToken.Token
-            };
+            var response = _jwtService.Authenticate(authenticationRequest.Email, claims, DateTime.UtcNow);
 
             return Ok(response);
         }
@@ -70,19 +62,12 @@ namespace BookeryWebApi.Controllers
             }
 
             var accessToken = bearer.Replace("Bearer ", "");
-            var authenticationResult = _jwtService.Refresh(accessToken, refreshRequest.RefreshToken, DateTime.UtcNow);
+            var response = _jwtService.Refresh(accessToken, refreshRequest.RefreshToken, DateTime.UtcNow);
 
-            if (authenticationResult is null)
+            if (response is null)
             {
                 return Unauthorized("Invalid token.");
             }
-
-            var response = new
-            {
-                username = authenticationResult.RefreshToken.Username,
-                accessToken = authenticationResult.AccessToken,
-                refreshToken = authenticationResult.RefreshToken.Token
-            };
 
             return Ok(response);
         }
@@ -97,17 +82,18 @@ namespace BookeryWebApi.Controllers
             return Ok();
         }
 
-        private ClaimsIdentity GetIdentity(AuthenticationRequest authenticationRequest)
+        private async Task<ClaimsIdentity> GetIdentity(AuthenticationRequest authenticationRequest)
         {
-            var userEntity = _context.Users.FirstOrDefault(x => x.Login == authenticationRequest.Login &&
-                                                                x.Password == authenticationRequest.Password);
+            var user = await _userService.GetByEmail(authenticationRequest.Email);
 
-            if (userEntity is null)
+            if (user is null || user.Password != authenticationRequest.Password)
+            {
                 return null;
+            }
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, userEntity.Login),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, "DefaultRole")
             };
 

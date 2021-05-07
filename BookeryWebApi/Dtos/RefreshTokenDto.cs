@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace BookeryWebApi.Dtos
+namespace WebApi.Dtos
 {
     public class RefreshTokenDto
     {
-        public string Username { get; set; }
+        public string Email { get; set; }
         public string Token { get; set; }
         public DateTime ExpireAt { get; set; }
     }

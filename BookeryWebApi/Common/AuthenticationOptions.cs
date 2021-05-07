@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BookeryWebApi.Common
+namespace WebApi.Common
 {
     public class AuthenticationOptions
     {

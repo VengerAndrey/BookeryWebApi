@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace BookeryWebApi.Services
+namespace WebApi.Services
 {
     public class ExpiredTokenCleaner : IHostedService, IDisposable
     {

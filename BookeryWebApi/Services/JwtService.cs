@@ -4,26 +4,29 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using BookeryWebApi.Common;
-using BookeryWebApi.Dtos;
+using WebApi.Dtos;
+using WebApi.Dtos.Responses;
 using Microsoft.IdentityModel.Tokens;
+using WebApi.Common;
 
-namespace BookeryWebApi.Services
+namespace WebApi.Services
 {
     public class JwtService : IJwtService
     {
         private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens = new ConcurrentDictionary<string, RefreshTokenDto>();
 
-        public Token Authenticate(string username, Claim[] claims, DateTime now)
+        public AuthenticationResponse Authenticate(string email, Claim[] claims, DateTime now)
         {
             var needAudience =
                 string.IsNullOrWhiteSpace(claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud)?.Value);
+
+            var accessTokenExpireAt = now.AddSeconds(AuthenticationOptions.AccessTokenExpiration);
 
             var jwt = new JwtSecurityToken(
                 issuer: AuthenticationOptions.Issuer,
                 audience: needAudience ? AuthenticationOptions.Audience : string.Empty,
                 claims: claims,
-                expires: now.AddSeconds(AuthenticationOptions.AccessTokenExpiration),
+                expires: accessTokenExpireAt,
                 signingCredentials: new SigningCredentials(AuthenticationOptions.GetSymmetricSecurityKey(),
                     SecurityAlgorithms.HmacSha256Signature));
 
@@ -31,21 +34,23 @@ namespace BookeryWebApi.Services
 
             var refreshToken = new RefreshTokenDto
             {
-                Username = username,
+                Email = email,
                 Token = GenerateRefreshTokenString(),
                 ExpireAt = now.AddSeconds(AuthenticationOptions.RefreshTokenExpiration)
             };
 
             _refreshTokens.AddOrUpdate(refreshToken.Token, refreshToken, (s, dto) => refreshToken);
 
-            return new Token
+            return new AuthenticationResponse
             {
+                Email = email,
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken.Token,
+                ExpireAt = accessTokenExpireAt
             };
         }
 
-        public Token Refresh(string accessToken, string refreshToken, DateTime now)
+        public AuthenticationResponse Refresh(string accessToken, string refreshToken, DateTime now)
         {
             var (principal, jwt) = DecodeJwt(accessToken);
 
@@ -61,7 +66,7 @@ namespace BookeryWebApi.Services
                 return null;
             }
 
-            if (username != existingRefreshToken.Username || existingRefreshToken.ExpireAt < now)
+            if (username != existingRefreshToken.Email || existingRefreshToken.ExpireAt < now)
             {
                 return null;
             }
@@ -79,9 +84,9 @@ namespace BookeryWebApi.Services
             }
         }
 
-        public void ClearRefreshToken(string username)
+        public void ClearRefreshToken(string email)
         {
-            var refreshTokens = _refreshTokens.Where(x => x.Value.Username == username).ToList();
+            var refreshTokens = _refreshTokens.Where(x => x.Value.Email == email).ToList();
 
             foreach (var expiredRefreshToken in refreshTokens)
             {
@@ -89,7 +94,7 @@ namespace BookeryWebApi.Services
             }
         }
 
-        private (ClaimsPrincipal, JwtSecurityToken) DecodeJwt(string token)
+        private static (ClaimsPrincipal, JwtSecurityToken) DecodeJwt(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -111,7 +116,7 @@ namespace BookeryWebApi.Services
             return (principal, validatedToken as JwtSecurityToken);
         }
 
-        private string GenerateRefreshTokenString()
+        private static string GenerateRefreshTokenString()
         {
             var bytes = new byte[32];
             using var randomNumberGenerator = RandomNumberGenerator.Create();

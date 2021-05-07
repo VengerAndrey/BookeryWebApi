@@ -1,4 +1,4 @@
-﻿namespace BookeryWebApi.Dtos.Requests
+﻿namespace WebApi.Dtos.Requests
 {
     public class RefreshTokenRequest
     {

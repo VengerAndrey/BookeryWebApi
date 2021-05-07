@@ -1,8 +1,8 @@
-﻿namespace BookeryWebApi.Dtos.Requests
+﻿namespace WebApi.Dtos.Requests
 {
     public class AuthenticationRequest
     {
-        public string Login { get; set; }
+        public string Email { get; set; }
         public string Password { get; set; }
     }
 }

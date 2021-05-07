@@ -6,14 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Azure.Storage.Blobs;
-using BookeryWebApi.Common;
-using BookeryWebApi.Repositories;
-using BookeryWebApi.Services;
+using WebApi.Services;
+using Domain.Services;
+using EntityFramework;
+using EntityFramework.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using WebApi.Common;
 
-namespace BookeryWebApi
+namespace WebApi
 {
     public class Startup
     {
@@ -45,19 +47,25 @@ namespace BookeryWebApi
                     };
                 });
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
 
-            services.AddSingleton(x => new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
             services.AddSingleton(x => 
-                new DatabaseContext(new DbContextOptionsBuilder<DatabaseContext>().UseSqlServer(Configuration.GetConnectionString("BookeryDb")).Options));
-            services.AddSingleton<IBlobRepository, AzureBlobRepository>();
-            services.AddSingleton<IDataRepository, AzureSqlRepository>();
+                new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
+            services.AddDbContextFactory<ApiDbContext>(o =>
+                o.UseSqlServer(Configuration.GetConnectionString("BookeryDb")));
+
+            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<INodeService, NodeService>();
+            services.AddSingleton<IBlobService, BlobService>();
+
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookeryWebApi", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
             });
         }
 
@@ -68,7 +76,7 @@ namespace BookeryWebApi
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookeryWebApi v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
             }
 
             app.UseHttpsRedirection();

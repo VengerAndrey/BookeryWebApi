@@ -1,9 +1,12 @@
-﻿namespace BookeryWebApi.Dtos.Responses
+﻿using System;
+
+namespace WebApi.Dtos.Responses
 {
     public class AuthenticationResponse
     {
-        public string Username { get; set; }
+        public string Email { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
+        public DateTime ExpireAt { get; set; }
     }
 }
