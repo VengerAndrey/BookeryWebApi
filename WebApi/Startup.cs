@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Azure.Storage.Blobs;
+using Azure.Storage.Files.Shares;
 using WebApi.Services;
 using Domain.Services;
 using EntityFramework;
@@ -52,21 +53,25 @@ namespace WebApi
             );
 
             services.AddSingleton(x => 
-                new BlobServiceClient(Configuration.GetConnectionString("BookeryBlobStorage")));
+                new BlobServiceClient(Configuration.GetConnectionString("StorageConnection")));
+            services.AddSingleton(x => 
+                new ShareServiceClient(Configuration.GetConnectionString("StorageConnection")));
+
             services.AddDbContextFactory<ApiDbContext>(o =>
-                o.UseSqlServer(Configuration.GetConnectionString("BookeryDb")));
+                o.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
 
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<INodeService, NodeService>();
             services.AddSingleton<IBlobService, BlobService>();
+            services.AddSingleton<IStorageService, StorageService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
 
-            services.AddSwaggerGen(c =>
+            /*services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
-            });
+            });*/
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -74,9 +79,9 @@ namespace WebApi
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
+                //app.UseDeveloperExceptionPage();
+                //app.UseSwagger();
+                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
             }
 
             app.UseHttpsRedirection();
