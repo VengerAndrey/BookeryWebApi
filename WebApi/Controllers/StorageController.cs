@@ -1,55 +1,74 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Domain.Models;
+using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using WebApi.Services;
 
 namespace WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class StorageController : ControllerBase
     {
         private readonly IStorageService _storageService;
+        private readonly IShareService _shareService;
+        private readonly IUserService _userService;
 
-        public StorageController(IStorageService storageService)
+        public StorageController(IStorageService storageService, IShareService shareService, IUserService userService)
         {
             _storageService = storageService;
+            _shareService = shareService;
+            _userService = userService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllShares()
         {
-            var shares = await _storageService.GetAllShares();
+            var user = await _userService.GetByEmail(User.Identity?.Name);
 
-            return Ok(shares);
+            return Ok(user.Shares);
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateShare([FromBody] string name)
         {
-            var result = await _storageService.CreateShare(new Share {Id = Guid.Empty, Name = name});
+            var user = await _userService.GetByEmail(User.Identity?.Name);
+            var share = new Share {Id = Guid.NewGuid(), Name = name, UserId = user.Id};
 
-            if (result is null)
+            var storageResult = await _storageService.CreateShare(share);
+            var dbResult = await _shareService.Create(share);
+
+            if (storageResult is null || dbResult is null || storageResult != dbResult)
             {
                 return Problem("Can't create a share.");
             }
 
-            return Ok(result);
+            return Ok(storageResult);
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdateShare([FromBody] Share share)
         {
-            var result = await _storageService.UpdateShare(share);
+            var user = await _userService.GetByEmail(User.Identity?.Name);
+            if (user.Shares.FirstOrDefault(x => x.Id == share.Id && x.UserId == user.Id) == null)
+            {
+                return Problem("No access.");
+            }
 
-            if (result is null)
+            var storageResult = await _storageService.UpdateShare(share);
+            var dbResult = await _shareService.Update(share);
+
+            if (storageResult is null || dbResult is null || storageResult != dbResult)
             {
                 return Problem("Can't update a share.");
             }
 
-            return Ok(result);
+            return Ok(storageResult);
         }
 
         [HttpGet]
@@ -70,14 +89,21 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<IActionResult> DeleteShare(Guid id)
         {
-            var result = await _storageService.DeleteShare(id);
-
-            if (result)
+            var user = await _userService.GetByEmail(User.Identity?.Name);
+            if (user.Shares.FirstOrDefault(x => x.Id == id && x.UserId == user.Id) == null)
             {
-                return Ok();
+                return Problem("No access.");
             }
 
-            return Problem("Can't delete a share.");
+            var storageResult = await _storageService.DeleteShare(id);
+            var dbResult = await _shareService.Delete(id);
+
+            if (!storageResult || !dbResult)
+            {
+                return Problem("Can't delete a share.");
+            }
+
+            return Ok();
         }
 
         [HttpGet]

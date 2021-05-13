@@ -15,7 +15,7 @@ namespace WebApi.Services
     {
         private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens = new ConcurrentDictionary<string, RefreshTokenDto>();
 
-        public AuthenticationResponse Authenticate(int userId, string email, Claim[] claims, DateTime now)
+        public AuthenticationResponse Authenticate(string email, Claim[] claims, DateTime now)
         {
             var needAudience =
                 string.IsNullOrWhiteSpace(claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud)?.Value);
@@ -43,7 +43,6 @@ namespace WebApi.Services
 
             return new AuthenticationResponse
             {
-                UserId = userId,
                 Email = email,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken.Token,
@@ -72,8 +71,7 @@ namespace WebApi.Services
                 return null;
             }
 
-            return Authenticate(Int32.Parse(principal.Claims.FirstOrDefault(x => x.Type == "UserId")?
-                .Value ?? "-1"), email, principal.Claims.ToArray(), now);
+            return Authenticate(email, principal.Claims.ToArray(), now);
         }
 
         public void ClearExpiredRefreshTokens(DateTime now)

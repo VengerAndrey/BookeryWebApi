@@ -43,7 +43,7 @@ namespace WebApi.Controllers
                 new Claim(ClaimTypes.Name, authenticationRequest.Email)
             };
 
-            var response = _jwtService.Authenticate(user.Id, authenticationRequest.Email, claims, DateTime.UtcNow);
+            var response = _jwtService.Authenticate(authenticationRequest.Email, claims, DateTime.UtcNow);
 
             return Ok(response);
         }
@@ -96,7 +96,6 @@ namespace WebApi.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Id.ToString()),
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, "DefaultRole")
             };

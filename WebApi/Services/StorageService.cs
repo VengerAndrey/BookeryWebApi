@@ -32,7 +32,8 @@ namespace WebApi.Services
                     shares.Add(new Share
                     {
                         Id = Guid.Parse(share.Name), 
-                        Name = share.Properties.Metadata["Name"]
+                        Name = share.Properties.Metadata["Name"],
+                        UserId = Int32.Parse(share.Properties.Metadata["UserId"])
                     });
                 }
             }
@@ -46,10 +47,12 @@ namespace WebApi.Services
 
             if (await shareClient.ExistsAsync())
             {
+                var properties = (await shareClient.GetPropertiesAsync()).Value;
                 return new Share
                 {
                     Id = id,
-                    Name = (await shareClient.GetPropertiesAsync()).Value.Metadata["Name"]
+                    Name = properties.Metadata["Name"],
+                    UserId = Int32.Parse(properties.Metadata["UserId"])
                 };
             }
 
@@ -58,11 +61,10 @@ namespace WebApi.Services
 
         public async Task<Share> CreateShare(Share share)
         {
-            share.Id = Guid.NewGuid();
-
             await _shareServiceClient.CreateShareAsync(share.Id.ToString(), new Dictionary<string, string>()
             {
-                {"Name", share.Name}
+                {"Name", share.Name},
+                {"UserId", share.UserId.ToString()}
             });
 
             var shareClient = _shareServiceClient.GetShareClient(share.Id.ToString());
@@ -97,7 +99,8 @@ namespace WebApi.Services
             {
                 await shareClient.SetMetadataAsync(new Dictionary<string, string>()
                 {
-                    {"Name", share.Name}
+                    {"Name", share.Name},
+                    {"UserId", share.UserId.ToString()}
                 });
             }
 

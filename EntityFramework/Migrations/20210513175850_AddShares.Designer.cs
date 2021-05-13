@@ -4,14 +4,16 @@ using EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EntityFramework.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210513175850_AddShares")]
+    partial class AddShares
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +34,8 @@ namespace EntityFramework.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Shares");
                 });
@@ -57,34 +61,18 @@ namespace EntityFramework.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ShareUser", b =>
+            modelBuilder.Entity("Domain.Models.Share", b =>
                 {
-                    b.Property<Guid>("SharesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SharesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ShareUser");
+                    b.HasOne("Domain.Models.User", null)
+                        .WithMany("Shares")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("ShareUser", b =>
+            modelBuilder.Entity("Domain.Models.User", b =>
                 {
-                    b.HasOne("Domain.Models.Share", null)
-                        .WithMany()
-                        .HasForeignKey("SharesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Shares");
                 });
 #pragma warning restore 612, 618
         }

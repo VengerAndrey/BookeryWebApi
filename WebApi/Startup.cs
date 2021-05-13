@@ -48,12 +48,8 @@ namespace WebApi
                     };
                 });
 
-            services.AddControllers().AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-            );
+            services.AddControllers();
 
-            services.AddSingleton(x => 
-                new BlobServiceClient(Configuration.GetConnectionString("StorageConnection")));
             services.AddSingleton(x => 
                 new ShareServiceClient(Configuration.GetConnectionString("StorageConnection")));
 
@@ -61,9 +57,8 @@ namespace WebApi
                 o.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
 
             services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<INodeService, NodeService>();
-            services.AddSingleton<IBlobService, BlobService>();
             services.AddSingleton<IStorageService, StorageService>();
+            services.AddSingleton<IShareService, ShareService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
