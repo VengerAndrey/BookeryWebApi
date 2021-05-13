@@ -1,7 +1,5 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
@@ -83,8 +81,8 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("getSubItems")]
-        public async Task<IActionResult> GetSubItems([FromBody] string path)
+        [Route("sub/{*path}")]
+        public async Task<IActionResult> GetSubItems(string path)
         {
             var items = await _storageService.GetSubItems(path);
 
@@ -97,17 +95,40 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        [Route("createItem")]
-        public async Task<IActionResult> CreateItem([FromBody] Item item)
+        [Route("create-directory/{*path}")]
+        public async Task<IActionResult> CreateDirectory(string path)
         {
-            var created = await _storageService.CreateItem(item);
+            var created = await _storageService.CreateDirectory(path);
 
             if (created is null)
             {
-                return Problem("Can't create an item.");
+                return Problem("Can't create a directory.");
             }
 
             return Created(created.Path, created);
+        }
+
+        [HttpPost]
+        [Route("upload/{*path}")]
+        public async Task<IActionResult> UploadFile(string path, [FromForm] IFormFile file)
+        {
+            var result = await _storageService.UploadFile(path, file.FileName, file.OpenReadStream());
+
+            if (result)
+            {
+                return Ok();
+            }
+
+            return Problem("Can't upload a file.");
+        }
+
+        [HttpGet]
+        [Route("download/{*path}")]
+        public async Task<IActionResult> DownloadFile(string path)
+        {
+            var stream = await _storageService.DownloadFile(path);
+
+            return File(stream, "application/octet-stream");
         }
     }
 }

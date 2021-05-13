@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace WebApi.Common
 {
@@ -43,6 +44,12 @@ namespace WebApi.Common
             return topNode;
         }
 
+        public string GetLastNode() =>
+            _path.Substring(_path.LastIndexOf("/") + 1, _path.Length - _path.LastIndexOf("/") - 1);
+
+        public string GetLastNode(string path) =>
+            path.Substring(path.LastIndexOf("/") + 1, path.Length - path.LastIndexOf("/") - 1);
+
         public void ParseUri(Uri uri)
         {
             _path = "";
@@ -63,21 +70,39 @@ namespace WebApi.Common
                     _path += uri.Segments[i];
                 }
             }
+
+            _path = _path.Replace("//", "/");
+
+            if (_path.EndsWith("/"))
+            {
+                _path = _path.Substring(0, _path.Length - 1);
+            }
         }
 
         public void ParsePath(string path)
         {
             _path = path;
+            if (_path.EndsWith("/"))
+            {
+                _path = _path.Substring(0, _path.Length - 1);
+            }
         }
 
         public bool IsFile() => _path.Contains(".");
 
-        public string GetFileName() =>
-            _path.Substring(_path.LastIndexOf("/") + 1, _path.Length - _path.LastIndexOf("/") - 1);
-
-        public bool IsFileLeft()
+        public bool IsLastNode()
         {
-            return !_path.Contains("/") && _path.Contains(".");
+            return !_path.Contains("/");
+        }
+
+        public int GetDepth(string path)
+        {
+            if (path.EndsWith("/"))
+            {
+                path = path.Substring(0, path.Length - 1);
+            }
+
+            return path.Count(x => x == '/') + 1;
         }
     }
 }

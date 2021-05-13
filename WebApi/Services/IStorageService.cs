@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Azure.Storage.Files.Shares.Models;
 using Domain.Models;
 
 namespace WebApi.Services
@@ -20,7 +17,8 @@ namespace WebApi.Services
 
         // share items
         Task<IEnumerable<Item>> GetSubItems(string path);
-        Task<Item> CreateItem(Item item);
-        Task<bool> UploadFile(string path, Stream content);
+        Task<Item> CreateDirectory(string path);
+        Task<bool> UploadFile(string path, string name, Stream content);
+        Task<Stream> DownloadFile(string path);
     }
 }

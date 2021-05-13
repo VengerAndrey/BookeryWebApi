@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Files.Shares.Models;
 using Domain.Models;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using WebApi.Common;
 
 namespace WebApi.Services
@@ -115,11 +113,21 @@ namespace WebApi.Services
                 return new List<Item>();
             }
 
-            var directory = await GetDirectoryClient(path);
+            var directory = await GetPenultimateDirectoryClient(path);
 
             if (directory is null)
             {
                 return null;
+            }
+
+            if(_pathBuilder.GetDepth(path) > 2)
+            {
+                directory = directory.GetSubdirectoryClient(_pathBuilder.GetLastNode(path));
+
+                if (directory is null)
+                {
+                    return null;
+                }
             }
 
             var items = new List<Item>();
@@ -139,51 +147,48 @@ namespace WebApi.Services
             return items;
         }
 
-        public async Task<Item> CreateItem(Item item)
+        public async Task<Item> CreateDirectory(string path)
         {
-            var directory = await GetDirectoryClient(item.Path);
+            var directory = await GetPenultimateDirectoryClient(path);
 
             if (directory is null)
             {
                 return null;
             }
 
-            if (item.IsDirectory)
-            {
-                var response = await directory.CreateSubdirectoryAsync(item.Name);
-                var createdDirectory = response.Value;
-                if (await createdDirectory.ExistsAsync())
-                {
-                    _pathBuilder.ParseUri(createdDirectory.Uri);
-                    item.Path = _pathBuilder.GetPath();
+            var name = _pathBuilder.GetLastNode(path);
 
-                    return item;
-                }
-            }
-            else
+            var response = await directory.CreateSubdirectoryAsync(name);
+            var createdDirectory = response.Value;
+            if (await createdDirectory.ExistsAsync())
             {
-                var response = await directory.CreateFileAsync(item.Name, item.Size ?? 0);
-                var createdFile = response.Value;
-                if (await createdFile.ExistsAsync())
-                {
-                    _pathBuilder.ParseUri(createdFile.Uri);
-                    item.Path = _pathBuilder.GetPath();
+                _pathBuilder.ParseUri(createdDirectory.Uri);
 
-                    return item;
-                }
+                return new Item
+                {
+                    Name = name,
+                    IsDirectory = true,
+                    Size = null,
+                    Path = _pathBuilder.GetPath()
+                };
             }
 
             return null;
         }
 
-        public async Task<bool> UploadFile(string path, Stream content)
+        public async Task<bool> UploadFile(string path, string name, Stream content)
         {
             _pathBuilder.ParsePath(path);
             if (_pathBuilder.IsFile())
             {
-                var fileName = _pathBuilder.GetFileName();
-                var directory = await GetDirectoryClient(path);
-                var file = directory.GetFileClient(fileName);
+                var directory = await GetPenultimateDirectoryClient(path);
+
+                if (directory is null)
+                {
+                    return false;
+                }
+
+                var file = directory.GetFileClient(name);
 
                 await file.CreateAsync(content.Length);
                 await file.UploadAsync(content);
@@ -194,7 +199,32 @@ namespace WebApi.Services
             return false;
         }
 
-        private async Task<ShareDirectoryClient> GetDirectoryClient(string path)
+        public async Task<Stream> DownloadFile(string path)
+        {
+            _pathBuilder.ParsePath(path);
+            if (_pathBuilder.IsFile())
+            {
+                var directory = await GetPenultimateDirectoryClient(path);
+
+                if (directory is null)
+                {
+                    return null;
+                }
+
+                var file = directory.GetFileClient(_pathBuilder.GetLastNode(path));
+                if (await file.ExistsAsync())
+                {
+                    var response = await file.DownloadAsync();
+                    var downloadedFile = response.Value;
+
+                    return downloadedFile.Content;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<ShareDirectoryClient> GetPenultimateDirectoryClient(string path)
         {
             _pathBuilder.ParsePath(path);
 
@@ -206,7 +236,12 @@ namespace WebApi.Services
 
                 if (await directory.ExistsAsync())
                 {
-                    while (!_pathBuilder.IsFileLeft() && _pathBuilder.GetPath() != "")
+                    if (_pathBuilder.GetDepth(path) == 1)
+                    {
+                        return directory;
+                    }
+
+                    while (!_pathBuilder.IsLastNode() && _pathBuilder.GetPath() != "")
                     {
                         directory = directory.GetSubdirectoryClient(_pathBuilder.GetTopNode());
 
