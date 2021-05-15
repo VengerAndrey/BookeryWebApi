@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Domain.Models;
+using Domain.Services;
 
-namespace Domain.Services
+namespace EntityFramework.Services
 {
     public interface IUserService : IDataService<User>
     {

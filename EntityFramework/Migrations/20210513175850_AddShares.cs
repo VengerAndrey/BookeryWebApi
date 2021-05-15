@@ -8,74 +8,74 @@ namespace EntityFramework.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Nodes");
+                "Nodes");
 
             migrationBuilder.CreateTable(
-                name: "Shares",
-                columns: table => new
+                "Shares",
+                table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<Guid>("uniqueidentifier", nullable: false),
+                    Name = table.Column<string>("nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>("int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Shares", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Shares_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
+                        "FK_Shares_Users_UserId",
+                        x => x.UserId,
+                        "Users",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Shares_UserId",
-                table: "Shares",
-                column: "UserId");
+                "IX_Shares_UserId",
+                "Shares",
+                "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Shares");
+                "Shares");
 
             migrationBuilder.CreateTable(
-                name: "Nodes",
-                columns: table => new
+                "Nodes",
+                table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>("int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    OwnerId = table.Column<int>(type: "int", nullable: true),
-                    ParentId = table.Column<int>(type: "int", nullable: true)
+                    Name = table.Column<string>("nvarchar(max)", nullable: true),
+                    OwnerId = table.Column<int>("int", nullable: true),
+                    ParentId = table.Column<int>("int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Nodes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Nodes_Nodes_ParentId",
-                        column: x => x.ParentId,
-                        principalTable: "Nodes",
-                        principalColumn: "Id",
+                        "FK_Nodes_Nodes_ParentId",
+                        x => x.ParentId,
+                        "Nodes",
+                        "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Nodes_Users_OwnerId",
-                        column: x => x.OwnerId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
+                        "FK_Nodes_Users_OwnerId",
+                        x => x.OwnerId,
+                        "Users",
+                        "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Nodes_OwnerId",
-                table: "Nodes",
-                column: "OwnerId");
+                "IX_Nodes_OwnerId",
+                "Nodes",
+                "OwnerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Nodes_ParentId",
-                table: "Nodes",
-                column: "ParentId");
+                "IX_Nodes_ParentId",
+                "Nodes",
+                "ParentId");
         }
     }
 }

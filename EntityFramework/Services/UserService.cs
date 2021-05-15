@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain.Models;
-using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Services

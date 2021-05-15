@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Domain.Services;
+﻿using System.Threading.Tasks;
+using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
@@ -23,12 +23,9 @@ namespace WebApi.Controllers
         {
             var user = await _userService.Get(id);
 
-            if (user is null)
-            {
-                return NotFound();
-            }
+            if (user is null) return NotFound();
 
-            return Ok(user.ToDto());
+            return Ok(user);
         }
     }
 }

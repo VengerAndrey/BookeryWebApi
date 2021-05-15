@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain.Models;
-using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Services
 {
-    public class ShareService : IShareService
+    public class DbShareService : IDbShareService
     {
         private readonly IDbContextFactory<ApiDbContext> _contextFactory;
 
-        public ShareService(IDbContextFactory<ApiDbContext> contextFactory)
+        public DbShareService(IDbContextFactory<ApiDbContext> contextFactory)
         {
             _contextFactory = contextFactory;
         }
@@ -35,15 +34,18 @@ namespace EntityFramework.Services
             await using var context = _contextFactory.CreateDbContext();
 
             var createdResult = await context.Shares.AddAsync(entity);
+            var owner = await context.Users.FirstOrDefaultAsync(x => x.Id == entity.OwnerId);
+            owner.Shares.Add(entity);
             await context.SaveChangesAsync();
 
             return createdResult.Entity;
         }
 
-        public async Task<Share> Update(Share entity)
+        public async Task<Share> Update(Guid id, Share entity)
         {
             await using var context = _contextFactory.CreateDbContext();
 
+            entity.Id = id;
             context.Shares.Update(entity);
             await context.SaveChangesAsync();
 
@@ -54,7 +56,8 @@ namespace EntityFramework.Services
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            var entity = await context.Shares.FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await context.Shares.Include(x => x.Users)
+                .FirstOrDefaultAsync(x => x.Id == id);
             context.Shares.Remove(entity);
             await context.SaveChangesAsync();
 

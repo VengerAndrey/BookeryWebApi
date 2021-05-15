@@ -8,39 +8,39 @@ namespace EntityFramework.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ShareUser",
-                columns: table => new
+                "ShareUser",
+                table => new
                 {
-                    SharesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UsersId = table.Column<int>(type: "int", nullable: false)
+                    SharesId = table.Column<Guid>("uniqueidentifier", nullable: false),
+                    UsersId = table.Column<int>("int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ShareUser", x => new { x.SharesId, x.UsersId });
+                    table.PrimaryKey("PK_ShareUser", x => new {x.SharesId, x.UsersId});
                     table.ForeignKey(
-                        name: "FK_ShareUser_Shares_SharesId",
-                        column: x => x.SharesId,
-                        principalTable: "Shares",
-                        principalColumn: "Id",
+                        "FK_ShareUser_Shares_SharesId",
+                        x => x.SharesId,
+                        "Shares",
+                        "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_ShareUser_Users_UsersId",
-                        column: x => x.UsersId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
+                        "FK_ShareUser_Users_UsersId",
+                        x => x.UsersId,
+                        "Users",
+                        "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ShareUser_UsersId",
-                table: "ShareUser",
-                column: "UsersId");
+                "IX_ShareUser_UsersId",
+                "ShareUser",
+                "UsersId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ShareUser");
+                "ShareUser");
         }
     }
 }

@@ -23,6 +23,4 @@ namespace EntityFramework
             base.OnConfiguring(optionsBuilder);
         }
     }
-
-    
 }

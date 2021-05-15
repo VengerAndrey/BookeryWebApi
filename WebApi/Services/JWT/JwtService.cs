@@ -9,11 +9,12 @@ using Domain.Models.DTOs.Responses;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
 
-namespace WebApi.Services
+namespace WebApi.Services.JWT
 {
     public class JwtService : IJwtService
     {
-        private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens = new ConcurrentDictionary<string, RefreshTokenDto>();
+        private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens =
+            new ConcurrentDictionary<string, RefreshTokenDto>();
 
         public AuthenticationResponse Authenticate(string email, Claim[] claims, DateTime now)
         {
@@ -23,9 +24,9 @@ namespace WebApi.Services
             var accessTokenExpireAt = now.AddSeconds(AuthenticationOptions.AccessTokenExpiration);
 
             var jwt = new JwtSecurityToken(
-                issuer: AuthenticationOptions.Issuer,
-                audience: needAudience ? AuthenticationOptions.Audience : string.Empty,
-                claims: claims,
+                AuthenticationOptions.Issuer,
+                needAudience ? AuthenticationOptions.Audience : string.Empty,
+                claims,
                 expires: accessTokenExpireAt,
                 signingCredentials: new SigningCredentials(AuthenticationOptions.GetSymmetricSecurityKey(),
                     SecurityAlgorithms.HmacSha256Signature));
@@ -54,22 +55,13 @@ namespace WebApi.Services
         {
             var (principal, jwt) = DecodeJwt(accessToken);
 
-            if (jwt is null || !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256Signature))
-            {
-                return null;
-            }
+            if (jwt is null || !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256Signature)) return null;
 
             var email = principal.Identity?.Name;
 
-            if (!_refreshTokens.TryGetValue(refreshToken, out var existingRefreshToken))
-            {
-                return null;
-            }
+            if (!_refreshTokens.TryGetValue(refreshToken, out var existingRefreshToken)) return null;
 
-            if (email != existingRefreshToken.Email || existingRefreshToken.ExpireAt < now)
-            {
-                return null;
-            }
+            if (email != existingRefreshToken.Email || existingRefreshToken.ExpireAt < now) return null;
 
             return Authenticate(email, principal.Claims.ToArray(), now);
         }
@@ -79,27 +71,19 @@ namespace WebApi.Services
             var expiredRefreshTokens = _refreshTokens.Where(x => x.Value.ExpireAt < now).ToList();
 
             foreach (var expiredRefreshToken in expiredRefreshTokens)
-            {
                 _refreshTokens.TryRemove(expiredRefreshToken.Key, out _);
-            }
         }
 
         public void ClearRefreshToken(string email)
         {
             var refreshTokens = _refreshTokens.Where(x => x.Value.Email == email).ToList();
 
-            foreach (var expiredRefreshToken in refreshTokens)
-            {
-                _refreshTokens.TryRemove(expiredRefreshToken.Key, out _);
-            }
+            foreach (var expiredRefreshToken in refreshTokens) _refreshTokens.TryRemove(expiredRefreshToken.Key, out _);
         }
 
         private static (ClaimsPrincipal, JwtSecurityToken) DecodeJwt(string token)
         {
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return (null, null);
-            }
+            if (string.IsNullOrWhiteSpace(token)) return (null, null);
 
             var principal = new JwtSecurityTokenHandler().ValidateToken(token, new TokenValidationParameters
             {

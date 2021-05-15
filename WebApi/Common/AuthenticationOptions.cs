@@ -12,6 +12,9 @@ namespace WebApi.Common
 
         private const string Key = "abcdefd12345!$%";
 
-        public static SymmetricSecurityKey GetSymmetricSecurityKey() => new SymmetricSecurityKey(Encoding.Unicode.GetBytes(Key));
+        public static SymmetricSecurityKey GetSymmetricSecurityKey()
+        {
+            return new SymmetricSecurityKey(Encoding.Unicode.GetBytes(Key));
+        }
     }
 }

@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using Domain.Models.DTOs.Responses;
 
-namespace WebApi.Services
+namespace WebApi.Services.JWT
 {
     public interface IJwtService
     {

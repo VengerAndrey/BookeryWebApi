@@ -1,20 +1,19 @@
 using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using Azure.Storage.Blobs;
 using Azure.Storage.Files.Shares;
-using WebApi.Services;
-using Domain.Services;
 using EntityFramework;
 using EntityFramework.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
+using WebApi.Services.Item;
+using WebApi.Services.JWT;
+using WebApi.Services.Share;
 
 namespace WebApi
 {
@@ -50,15 +49,17 @@ namespace WebApi
 
             services.AddControllers();
 
-            services.AddSingleton(x => 
+            services.AddSingleton(x =>
                 new ShareServiceClient(Configuration.GetConnectionString("StorageConnection")));
 
             services.AddDbContextFactory<ApiDbContext>(o =>
                 o.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
 
             services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<IStorageService, StorageService>();
+            services.AddSingleton<IAzureShareService, AzureShareService>();
+            services.AddSingleton<IDbShareService, DbShareService>();
             services.AddSingleton<IShareService, ShareService>();
+            services.AddSingleton<IItemService, ItemService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
@@ -86,10 +87,7 @@ namespace WebApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

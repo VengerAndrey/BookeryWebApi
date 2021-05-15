@@ -1,31 +1,24 @@
-﻿using System;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Domain.Models;
-using Domain.Services;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using WebApi.Services;
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Services.Item;
 
 namespace WebApi.Controllers
 {
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class StorageController : ControllerBase
+    public class ItemController : ControllerBase
     {
-        private readonly IStorageService _storageService;
-        private readonly IShareService _shareService;
-        private readonly IUserService _userService;
+        private readonly IItemService _itemService;
 
-        public StorageController(IStorageService storageService, IShareService shareService, IUserService userService)
+        public ItemController(IItemService itemService)
         {
-            _storageService = storageService;
-            _shareService = shareService;
-            _userService = userService;
+            _itemService = itemService;
         }
 
+/*
         [HttpGet]
         public async Task<IActionResult> GetAllShares()
         {
@@ -105,17 +98,14 @@ namespace WebApi.Controllers
 
             return Ok();
         }
-
+*/
         [HttpGet]
-        [Route("sub/{*path}")]
+        [Route("sub-items/{*path}")]
         public async Task<IActionResult> GetSubItems(string path)
         {
-            var items = await _storageService.GetSubItems(path);
+            var items = await _itemService.GetSubItems(path);
 
-            if (items is null)
-            {
-                return NotFound();
-            }
+            if (items is null) return NotFound();
 
             return Ok(items);
         }
@@ -124,35 +114,30 @@ namespace WebApi.Controllers
         [Route("create-directory/{*path}")]
         public async Task<IActionResult> CreateDirectory(string path)
         {
-            var created = await _storageService.CreateDirectory(path);
+            var created = await _itemService.CreateDirectory(path);
 
-            if (created is null)
-            {
-                return Problem("Can't create a directory.");
-            }
+            if (created is null) return Problem("Can't create a directory.");
 
             return Created(created.Path, created);
         }
 
         [HttpPost]
-        [Route("upload/{*path}")]
+        [Route("upload-file/{*path}")]
         public async Task<IActionResult> UploadFile(string path, [FromForm] IFormFile file)
         {
-            var result = await _storageService.UploadFile(path, file.FileName, file.OpenReadStream());
+            var result = await _itemService.UploadFile(path, file.FileName, file.OpenReadStream());
 
-            if (result)
-            {
-                return Ok();
-            }
+            if (result is null)
+                return Problem("Can't upload a file.");
 
-            return Problem("Can't upload a file.");
+            return Ok(result);
         }
 
         [HttpGet]
-        [Route("download/{*path}")]
+        [Route("download-file/{*path}")]
         public async Task<IActionResult> DownloadFile(string path)
         {
-            var stream = await _storageService.DownloadFile(path);
+            var stream = await _itemService.DownloadFile(path);
 
             return File(stream, "application/octet-stream");
         }
