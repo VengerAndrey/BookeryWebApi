@@ -13,8 +13,8 @@ namespace WebApi.Services.JWT
 {
     public class JwtService : IJwtService
     {
-        private readonly ConcurrentDictionary<string, RefreshTokenDto> _refreshTokens =
-            new ConcurrentDictionary<string, RefreshTokenDto>();
+        private readonly ConcurrentDictionary<string, RefreshToken> _refreshTokens =
+            new ConcurrentDictionary<string, RefreshToken>();
 
         public AuthenticationResponse Authenticate(string email, Claim[] claims, DateTime now)
         {
@@ -33,7 +33,7 @@ namespace WebApi.Services.JWT
 
             var accessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            var refreshToken = new RefreshTokenDto
+            var refreshToken = new RefreshToken
             {
                 Email = email,
                 Token = GenerateRefreshTokenString(),

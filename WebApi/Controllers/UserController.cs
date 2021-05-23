@@ -18,10 +18,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> Get(int id)
+        [Route("")]
+        public async Task<IActionResult> Get()
         {
-            var user = await _userService.Get(id);
+            var user = await _userService.GetByEmail(User.Identity?.Name);
 
             if (user is null) return NotFound();
 

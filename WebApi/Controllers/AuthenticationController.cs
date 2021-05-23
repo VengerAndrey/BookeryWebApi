@@ -46,7 +46,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        [Route("refreshToken")]
+        [Route("refresh-token")]
         public IActionResult RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
         {
             var authorizationHeader = Request.Headers[HeaderNames.Authorization];

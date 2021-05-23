@@ -10,8 +10,8 @@ using WebApi.Services.Share;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     [Authorize]
     public class ShareController : ControllerBase
     {
