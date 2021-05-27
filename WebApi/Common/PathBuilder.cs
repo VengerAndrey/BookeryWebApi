@@ -43,6 +43,24 @@ namespace WebApi.Common
             return topNode;
         }
 
+        public string GetLastNode()
+        {
+            string lastNode;
+
+            if (!_path.Contains("/"))
+            {
+                lastNode = _path;
+                _path = "";
+            }
+            else
+            {
+                lastNode = _path.Substring(_path.LastIndexOf("/") + 1, _path.Length - _path.LastIndexOf("/") - 1);
+                _path = _path.Substring(0, _path.LastIndexOf("/"));
+            }
+
+            return lastNode;
+        }
+
         public string GetLastNode(string path)
         {
             return path.Substring(path.LastIndexOf("/") + 1, path.Length - path.LastIndexOf("/") - 1);

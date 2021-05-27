@@ -129,6 +129,29 @@ namespace WebApi.Services.Item
             return null;
         }
 
+        public async Task<bool> Delete(string path)
+        {
+            var directory = await GetPenultimateDirectoryClient(path);
+
+            if (directory != null)
+            {
+                _pathBuilder.ParsePath(path);
+
+                if (_pathBuilder.IsFile())
+                {
+                    await directory.DeleteFileAsync(_pathBuilder.GetLastNode());
+                }
+                else
+                {
+                    await DeleteDirectory(directory.GetSubdirectoryClient(_pathBuilder.GetLastNode()));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         private async Task<ShareDirectoryClient> GetPenultimateDirectoryClient(string path)
         {
             _pathBuilder.ParsePath(path);
@@ -155,6 +178,30 @@ namespace WebApi.Services.Item
             }
 
             return null;
+        }
+
+        private async Task<bool> DeleteDirectory(ShareDirectoryClient directory)
+        {
+            if (await directory.ExistsAsync())
+            {
+                await foreach (var item in directory.GetFilesAndDirectoriesAsync())
+                {
+                    if (item.IsDirectory)
+                    {
+                        await DeleteDirectory(directory.GetSubdirectoryClient(item.Name));
+                    }
+                    else
+                    {
+                        await directory.DeleteFileAsync(item.Name);
+                    }
+                }
+
+                await directory.DeleteIfExistsAsync();
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

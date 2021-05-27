@@ -8,7 +8,7 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -59,6 +59,13 @@ namespace WebApi.Controllers
             var stream = await _itemService.DownloadFile(path);
 
             return File(stream, "application/octet-stream");
+        }
+
+        [HttpDelete]
+        [Route("delete/{*path}")]
+        public async Task<IActionResult> Delete(string path)
+        {
+            return Ok(await _itemService.Delete(path));
         }
     }
 }
