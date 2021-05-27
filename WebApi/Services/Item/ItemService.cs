@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Files.Shares;
 using WebApi.Common;
@@ -16,6 +17,25 @@ namespace WebApi.Services.Item
         {
             _shareServiceClient = shareServiceClient;
             _pathBuilder = new PathBuilder();
+        }
+
+        public async Task<Domain.Models.Item> GetItem(string path)
+        {
+            _pathBuilder.ParsePath(path);
+            if (_pathBuilder.GetDepth(path) == 2)
+            {
+                return new Domain.Models.Item
+                {
+                    Name = "root",
+                    IsDirectory = true,
+                    Size = null,
+                    Path = path
+                };
+            }
+
+            _pathBuilder.GetLastNode();
+            var items = await GetSubItems(_pathBuilder.GetPath());
+            return items.First(x => x.Path.Replace("%20", " ") == path);
         }
 
         public async Task<IEnumerable<Domain.Models.Item>> GetSubItems(string path)

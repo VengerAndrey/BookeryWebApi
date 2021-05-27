@@ -19,6 +19,17 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Route("item/{*path}")]
+        public async Task<IActionResult> GetItem(string path)
+        {
+            var item = await _itemService.GetItem(path);
+
+            if (item is null) return NotFound();
+
+            return Ok(item);
+        }
+
+        [HttpGet]
         [Route("sub-items/{*path}")]
         public async Task<IActionResult> GetSubItems(string path)
         {
