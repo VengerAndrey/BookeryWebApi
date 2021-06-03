@@ -23,7 +23,10 @@ namespace WebApi.Controllers
         {
             var user = await _userService.GetByEmail(User.Identity?.Name);
 
-            if (user is null) return NotFound();
+            if (user is null)
+            {
+                return NotFound();
+            }
 
             return Ok(user);
         }

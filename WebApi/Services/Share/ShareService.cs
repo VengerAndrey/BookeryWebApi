@@ -35,7 +35,9 @@ namespace WebApi.Services.Share
             var dbResult = await _dbShareService.Create(entity);
 
             if (azureResult is null || dbResult is null || azureResult != dbResult)
+            {
                 throw new ShareCRUDException(entity.Id, entity.Name, entity.OwnerId);
+            }
 
             return azureResult;
         }
@@ -46,7 +48,9 @@ namespace WebApi.Services.Share
             var dbResult = await _dbShareService.Update(id, entity);
 
             if (azureResult is null || dbResult is null || azureResult != dbResult)
+            {
                 throw new ShareCRUDException(entity.Id, entity.Name, entity.OwnerId);
+            }
 
             return azureResult;
         }
@@ -56,7 +60,10 @@ namespace WebApi.Services.Share
             var azureResult = await _azureShareService.Delete(id);
             var dbResult = await _dbShareService.Delete(id);
 
-            if (!azureResult || !dbResult) throw new ShareCRUDException(id);
+            if (!azureResult || !dbResult)
+            {
+                throw new ShareCRUDException(id);
+            }
 
             return true;
         }

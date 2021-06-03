@@ -22,12 +22,14 @@ namespace WebApi.Services.Share
 
             await foreach (var sharePage in _shareServiceClient.GetSharesAsync(ShareTraits.Metadata).AsPages())
             foreach (var share in sharePage.Values)
+            {
                 shares.Add(new Domain.Models.Share
                 {
                     Id = Guid.Parse(share.Name),
                     Name = share.Properties.Metadata["Name"],
                     OwnerId = int.Parse(share.Properties.Metadata["OwnerId"])
                 });
+            }
 
             return shares;
         }
@@ -66,7 +68,10 @@ namespace WebApi.Services.Share
 
                 var rootDirectory = shareClient.GetRootDirectoryClient();
 
-                if (await rootDirectory.ExistsAsync()) return share;
+                if (await rootDirectory.ExistsAsync())
+                {
+                    return share;
+                }
             }
 
             return null;
@@ -77,11 +82,13 @@ namespace WebApi.Services.Share
             var shareClient = _shareServiceClient.GetShareClient(id.ToString());
 
             if (await shareClient.ExistsAsync())
+            {
                 await shareClient.SetMetadataAsync(new Dictionary<string, string>
                 {
                     {"Name", share.Name},
                     {"OwnerId", share.OwnerId.ToString()}
                 });
+            }
 
             return await Get(id);
         }

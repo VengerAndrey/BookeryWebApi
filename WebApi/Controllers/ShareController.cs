@@ -54,7 +54,10 @@ namespace WebApi.Controllers
         public async Task<IActionResult> UpdateShare([FromBody] Share share)
         {
             var user = await _userService.GetByEmail(User.Identity?.Name);
-            if (user.Shares.FirstOrDefault(x => x.Id == share.Id && x.OwnerId == user.Id) == null) return Forbid();
+            if (user.Shares.FirstOrDefault(x => x.Id == share.Id && x.OwnerId == user.Id) == null)
+            {
+                return Forbid();
+            }
 
             try
             {
@@ -74,7 +77,10 @@ namespace WebApi.Controllers
         {
             var share = await _shareService.Get(id);
 
-            if (share is null) return NotFound();
+            if (share is null)
+            {
+                return NotFound();
+            }
 
             return Ok(share);
         }
@@ -84,7 +90,10 @@ namespace WebApi.Controllers
         public async Task<IActionResult> DeleteShare(Guid id)
         {
             var user = await _userService.GetByEmail(User.Identity?.Name);
-            if (user.Shares.FirstOrDefault(x => x.Id == id && x.OwnerId == user.Id) == null) return Forbid();
+            if (user.Shares.FirstOrDefault(x => x.Id == id && x.OwnerId == user.Id) == null)
+            {
+                return Forbid();
+            }
 
             try
             {

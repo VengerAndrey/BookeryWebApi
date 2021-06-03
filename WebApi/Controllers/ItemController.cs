@@ -24,7 +24,10 @@ namespace WebApi.Controllers
         {
             var item = await _itemService.GetItem(path);
 
-            if (item is null) return NotFound();
+            if (item is null)
+            {
+                return NotFound();
+            }
 
             return Ok(item);
         }
@@ -35,7 +38,10 @@ namespace WebApi.Controllers
         {
             var items = await _itemService.GetSubItems(path);
 
-            if (items is null) return NotFound();
+            if (items is null)
+            {
+                return NotFound();
+            }
 
             return Ok(items);
         }
@@ -46,7 +52,10 @@ namespace WebApi.Controllers
         {
             var created = await _itemService.CreateDirectory(path);
 
-            if (created is null) return Problem("Can't create a directory.");
+            if (created is null)
+            {
+                return Problem("Can't create a directory.");
+            }
 
             return Created(created.Path, created);
         }
@@ -58,7 +67,9 @@ namespace WebApi.Controllers
             var result = await _itemService.UploadFile(path, file.FileName, file.OpenReadStream());
 
             if (result is null)
+            {
                 return Problem("Can't upload a file.");
+            }
 
             return Ok(result);
         }

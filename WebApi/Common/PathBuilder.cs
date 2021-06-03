@@ -20,9 +20,13 @@ namespace WebApi.Common
         public void AddNode(string name)
         {
             if (_path == "")
+            {
                 _path += name;
+            }
             else
+            {
                 _path += $"/{name}";
+            }
         }
 
         public string GetTopNode()
@@ -70,23 +74,38 @@ namespace WebApi.Common
         {
             _path = "";
 
-            if (uri is null) return;
+            if (uri is null)
+            {
+                return;
+            }
 
             if (uri.Segments.Length <= 1)
+            {
                 _path = "";
+            }
             else
+            {
                 for (var i = 1; i < uri.Segments.Length; i++)
+                {
                     _path += uri.Segments[i];
+                }
+            }
 
             _path = _path.Replace("//", "/");
 
-            if (_path.EndsWith("/")) _path = _path.Substring(0, _path.Length - 1);
+            if (_path.EndsWith("/"))
+            {
+                _path = _path.Substring(0, _path.Length - 1);
+            }
         }
 
         public void ParsePath(string path)
         {
             _path = path;
-            if (_path.EndsWith("/")) _path = _path.Substring(0, _path.Length - 1);
+            if (_path.EndsWith("/"))
+            {
+                _path = _path.Substring(0, _path.Length - 1);
+            }
         }
 
         public bool IsFile()
@@ -101,7 +120,10 @@ namespace WebApi.Common
 
         public int GetDepth(string path)
         {
-            if (path.EndsWith("/")) path = path.Substring(0, path.Length - 1);
+            if (path.EndsWith("/"))
+            {
+                path = path.Substring(0, path.Length - 1);
+            }
 
             return path.Count(x => x == '/') + 1;
         }

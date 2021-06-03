@@ -42,17 +42,26 @@ namespace WebApi.Services.Item
         {
             _pathBuilder.ParsePath(path);
 
-            if (_pathBuilder.IsFile()) return new List<Domain.Models.Item>();
+            if (_pathBuilder.IsFile())
+            {
+                return new List<Domain.Models.Item>();
+            }
 
             var directory = await GetPenultimateDirectoryClient(path);
 
-            if (directory is null) return null;
+            if (directory is null)
+            {
+                return null;
+            }
 
             if (_pathBuilder.GetDepth(path) > 2)
             {
                 directory = directory.GetSubdirectoryClient(_pathBuilder.GetLastNode(path));
 
-                if (directory is null) return null;
+                if (directory is null)
+                {
+                    return null;
+                }
             }
 
             var items = new List<Domain.Models.Item>();
@@ -76,7 +85,10 @@ namespace WebApi.Services.Item
         {
             var directory = await GetPenultimateDirectoryClient(path);
 
-            if (directory is null) return null;
+            if (directory is null)
+            {
+                return null;
+            }
 
             var name = _pathBuilder.GetLastNode(path);
 
@@ -105,7 +117,10 @@ namespace WebApi.Services.Item
             {
                 var directory = await GetPenultimateDirectoryClient(path);
 
-                if (directory is null) return null;
+                if (directory is null)
+                {
+                    return null;
+                }
 
                 var file = directory.GetFileClient(name);
 
@@ -134,7 +149,10 @@ namespace WebApi.Services.Item
             {
                 var directory = await GetPenultimateDirectoryClient(path);
 
-                if (directory is null) return null;
+                if (directory is null)
+                {
+                    return null;
+                }
 
                 var file = directory.GetFileClient(_pathBuilder.GetLastNode(path));
                 if (await file.ExistsAsync())
@@ -184,13 +202,19 @@ namespace WebApi.Services.Item
 
                 if (await directory.ExistsAsync())
                 {
-                    if (_pathBuilder.GetDepth(path) == 1) return directory;
+                    if (_pathBuilder.GetDepth(path) == 1)
+                    {
+                        return directory;
+                    }
 
                     while (!_pathBuilder.IsLastNode() && _pathBuilder.GetPath() != "")
                     {
                         directory = directory.GetSubdirectoryClient(_pathBuilder.GetTopNode());
 
-                        if (!await directory.ExistsAsync()) return null;
+                        if (!await directory.ExistsAsync())
+                        {
+                            return null;
+                        }
                     }
 
                     return directory;

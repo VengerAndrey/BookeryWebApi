@@ -30,7 +30,10 @@ namespace WebApi.Controllers
         {
             var identity = await GetIdentity(authenticationRequest);
 
-            if (identity is null) return Unauthorized("Invalid username or password.");
+            if (identity is null)
+            {
+                return Unauthorized("Invalid username or password.");
+            }
 
             var user = await _userService.GetByEmail(authenticationRequest.Email);
 
@@ -50,15 +53,24 @@ namespace WebApi.Controllers
         public IActionResult RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
         {
             var authorizationHeader = Request.Headers[HeaderNames.Authorization];
-            if (authorizationHeader.Count == 0) return Unauthorized("Invalid token.");
+            if (authorizationHeader.Count == 0)
+            {
+                return Unauthorized("Invalid token.");
+            }
 
             var bearer = authorizationHeader[0];
-            if (!bearer.Contains("Bearer ")) return Unauthorized("Invalid token.");
+            if (!bearer.Contains("Bearer "))
+            {
+                return Unauthorized("Invalid token.");
+            }
 
             var accessToken = bearer.Replace("Bearer ", "");
             var response = _jwtService.Refresh(accessToken, refreshRequest.RefreshToken, DateTime.UtcNow);
 
-            if (response is null) return Unauthorized("Invalid token.");
+            if (response is null)
+            {
+                return Unauthorized("Invalid token.");
+            }
 
             return Ok(response);
         }
@@ -77,7 +89,10 @@ namespace WebApi.Controllers
         {
             var user = await _userService.GetByEmail(authenticationRequest.Email);
 
-            if (user is null || user.Password != authenticationRequest.Password) return null;
+            if (user is null || user.Password != authenticationRequest.Password)
+            {
+                return null;
+            }
 
             var claims = new List<Claim>
             {
