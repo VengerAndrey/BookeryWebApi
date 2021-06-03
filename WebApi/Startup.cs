@@ -60,6 +60,7 @@ namespace WebApi
             services.AddSingleton<IDbShareService, DbShareService>();
             services.AddSingleton<IShareService, ShareService>();
             services.AddSingleton<IItemService, ItemService>();
+            services.AddSingleton<IAccessService, AccessService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
