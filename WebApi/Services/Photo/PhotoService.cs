@@ -45,11 +45,19 @@ namespace WebApi.Services.Photo
         {
             try
             {
+                await foreach (var shareFileItem in _directoryClient.GetFilesAndDirectoriesAsync())
+                {
+                    if (shareFileItem.Name.Substring(0, shareFileItem.Name.IndexOf(".")) == userId.ToString())
+                    {
+                        var oldFileClient = _directoryClient.GetFileClient(shareFileItem.Name);
+                        await oldFileClient.DeleteAsync();
+                    }
+                }
                 var fileClient = _directoryClient.GetFileClient(userId + extension);
                 await fileClient.CreateAsync(content.Length);
                 await fileClient.UploadAsync(content);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
