@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
 using WebApi.Services.Item;
 using WebApi.Services.JWT;
+using WebApi.Services.Photo;
 using WebApi.Services.Share;
 
 namespace WebApi
@@ -61,6 +62,7 @@ namespace WebApi
             services.AddSingleton<IShareService, ShareService>();
             services.AddSingleton<IItemService, ItemService>();
             services.AddSingleton<IAccessService, AccessService>();
+            services.AddSingleton<IPhotoService, PhotoService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
