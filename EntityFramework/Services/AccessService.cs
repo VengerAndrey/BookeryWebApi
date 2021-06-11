@@ -18,7 +18,7 @@ namespace EntityFramework.Services
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            var user = await context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            var user = await context.Users.Include(x => x.Shares).FirstOrDefaultAsync(x => x.Email == email);
             if (user is null)
             {
                 return false;
@@ -30,7 +30,7 @@ namespace EntityFramework.Services
                 return false;
             }
 
-            if (user.Shares.FirstOrDefault(x => x.Id == id && x.OwnerId == user.Id) == null)
+            if (user.Shares.FirstOrDefault(x => x.Id == id) == null)
             {
                 user.Shares.Add(share);
                 await context.SaveChangesAsync();

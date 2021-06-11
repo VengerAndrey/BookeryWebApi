@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Domain.Models;
 using Domain.Models.DTOs.Requests;
+using Domain.Models.DTOs.Responses;
 using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,12 +79,40 @@ namespace WebApi.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("logout")]
-        public IActionResult Logout()
+        [Route("log-out")]
+        public IActionResult LogOut()
         {
             _jwtService.ClearRefreshToken(User.Identity?.Name);
 
             return Ok();
+        }
+
+        [HttpPost]
+        [Route("sign-up")]
+        public async Task<SignUpResult> SignUp([FromBody] SignUpRequest signUpRequest)
+        {
+            var user = await _userService.GetByEmail(signUpRequest.Email);
+
+            if (user != null)
+            {
+                return SignUpResult.EmailAlreadyExists;
+            }
+
+            user = await _userService.GetByUsername(signUpRequest.Username);
+
+            if (user != null)
+            {
+                return SignUpResult.UsernameAlreadyExists;
+            }
+
+            await _userService.Create(new User
+            {
+                Email = signUpRequest.Email,
+                Username = signUpRequest.Username,
+                Password = signUpRequest.Password
+            });
+
+            return SignUpResult.Success;
         }
 
         private async Task<ClaimsIdentity> GetIdentity(AuthenticationRequest authenticationRequest)
