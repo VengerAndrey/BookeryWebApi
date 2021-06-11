@@ -9,6 +9,7 @@ namespace WebApi.Services.Item
         Task<Domain.Models.Item> GetItem(string path);
         Task<IEnumerable<Domain.Models.Item>> GetSubItems(string path);
         Task<Domain.Models.Item> CreateDirectory(string path);
+        Task<Domain.Models.Item> RenameFile(string path, string name);
         Task<Domain.Models.Item> UploadFile(string path, string name, Stream content);
         Task<Stream> DownloadFile(string path);
         Task<bool> Delete(string path);

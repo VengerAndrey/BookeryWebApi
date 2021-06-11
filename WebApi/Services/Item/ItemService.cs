@@ -110,6 +110,35 @@ namespace WebApi.Services.Item
             return null;
         }
 
+        public async Task<Domain.Models.Item> RenameFile(string path, string name)
+        {
+            var directory = await GetPenultimateDirectoryClient(path);
+
+            if (directory is null)
+            {
+                return null;
+            }
+
+            _pathBuilder.ParsePath(path);
+            if (_pathBuilder.IsFile())
+            {
+                var oldFileClient = directory.GetFileClient(_pathBuilder.GetLastNode(path));
+                var newFileClient = (await directory.CreateFileAsync(name,
+                    (await oldFileClient.OpenReadAsync()).Length)).Value;
+
+                await newFileClient.UploadAsync(await oldFileClient.OpenReadAsync());
+                await oldFileClient.DeleteAsync();
+
+                _pathBuilder.ParsePath(path);
+                _pathBuilder.GetLastNode();
+                _pathBuilder.AddNode(name);
+
+                return await GetItem(_pathBuilder.GetPath());
+            }
+
+            return null;
+        }
+
         public async Task<Domain.Models.Item> UploadFile(string path, string name, Stream content)
         {
             _pathBuilder.ParsePath(path);

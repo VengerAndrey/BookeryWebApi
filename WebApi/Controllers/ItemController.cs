@@ -61,6 +61,15 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Route("rename-file/{*path}")]
+        public async Task<IActionResult> RenameFile(string path, [FromBody] string name)
+        {
+            var result = await _itemService.RenameFile(path, name);
+
+            return Ok(result);
+        }
+
+        [HttpPost]
         [Route("upload-file/{*path}")]
         public async Task<IActionResult> UploadFile(string path, [FromForm] IFormFile file)
         {

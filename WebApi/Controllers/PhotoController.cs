@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using WebApi.Services.Photo;
 
 namespace WebApi.Controllers

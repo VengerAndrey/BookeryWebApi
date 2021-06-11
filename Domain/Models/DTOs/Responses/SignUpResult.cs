@@ -5,5 +5,5 @@
         Success,
         EmailAlreadyExists,
         UsernameAlreadyExists
-    } 
+    }
 }

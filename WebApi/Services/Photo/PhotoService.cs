@@ -53,6 +53,7 @@ namespace WebApi.Services.Photo
                         await oldFileClient.DeleteAsync();
                     }
                 }
+
                 var fileClient = _directoryClient.GetFileClient(userId + extension);
                 await fileClient.CreateAsync(content.Length);
                 await fileClient.UploadAsync(content);
