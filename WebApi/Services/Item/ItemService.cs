@@ -112,6 +112,11 @@ namespace WebApi.Services.Item
 
         public async Task<Domain.Models.Item> RenameFile(string path, string name)
         {
+            if (_pathBuilder.GetLastNode(path) == name)
+            {
+                return await GetItem(path);
+            }
+
             var directory = await GetPenultimateDirectoryClient(path);
 
             if (directory is null)
