@@ -11,10 +11,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
+using WebApi.Services.Database;
 using WebApi.Services.Item;
 using WebApi.Services.JWT;
 using WebApi.Services.Photo;
 using WebApi.Services.Share;
+using WebApi.Services.Storage;
 
 namespace WebApi
 {
@@ -54,15 +56,18 @@ namespace WebApi
                 new ShareServiceClient(Configuration.GetConnectionString("StorageConnection")));
 
             services.AddDbContextFactory<ApiDbContext>(o =>
-                o.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
+                o.UseSqlServer(Configuration.GetConnectionString("LocalDb")));
 
+            services.AddSingleton<INodeService, NodeService>();
             services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<IAzureShareService, AzureShareService>();
-            services.AddSingleton<IDbShareService, DbShareService>();
-            services.AddSingleton<IShareService, ShareService>();
-            services.AddSingleton<IItemService, ItemService>();
-            services.AddSingleton<IAccessService, AccessService>();
-            services.AddSingleton<IPhotoService, PhotoService>();
+            services.AddSingleton<IUserNodeService, UserNodeService>();
+            services.AddSingleton<IStorage, LocalStorage>();
+            //services.AddSingleton<IAzureShareService, AzureShareService>();
+            //services.AddSingleton<IDbShareService, DbShareService>();
+            //services.AddSingleton<IShareService, ShareService>();
+            //services.AddSingleton<IItemService, ItemService>();
+            //services.AddSingleton<IAccessService, AccessService>();
+            //services.AddSingleton<IPhotoService, PhotoService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();

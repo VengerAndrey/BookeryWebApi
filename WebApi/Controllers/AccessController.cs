@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
-    [ApiController]
+    /*[ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class AccessController : ControllerBase
@@ -31,5 +31,5 @@ namespace WebApi.Controllers
 
             return NotFound();
         }
-    }
+    }*/
 }

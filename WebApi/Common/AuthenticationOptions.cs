@@ -7,8 +7,8 @@ namespace WebApi.Common
     {
         public const string Issuer = "BookeryServer";
         public const string Audience = "BookeryClient";
-        public const int AccessTokenExpiration = 60;
-        public const int RefreshTokenExpiration = 300;
+        public const int AccessTokenExpiration = 600;
+        public const int RefreshTokenExpiration = 3000;
 
         private const string Key = "abcdefd12345!$%";
 

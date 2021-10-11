@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Domain.Models;
+using EntityFramework;
 using Microsoft.EntityFrameworkCore;
 
-namespace EntityFramework.Services
+namespace WebApi.Services.Database
 {
     public class UserService : IUserService
     {
@@ -19,19 +21,16 @@ namespace EntityFramework.Services
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            var users = await context.Users
-                .Include(x => x.Shares)
-                .ToListAsync();
+            var users = await context.Users.ToListAsync();
 
             return users;
         }
 
-        public async Task<User> Get(int id)
+        public async Task<User> Get(Guid id)
         {
             await using var context = _contextFactory.CreateDbContext();
 
             var user = await context.Users
-                .Include(x => x.Shares)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return user;
@@ -47,18 +46,17 @@ namespace EntityFramework.Services
             return createdResult.Entity;
         }
 
-        public async Task<User> Update(int id, User entity)
+        public async Task<User> Update(User entity)
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            entity.Id = id;
             context.Users.Update(entity);
             await context.SaveChangesAsync();
 
             return entity;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task<bool> Delete(Guid id)
         {
             await using var context = _contextFactory.CreateDbContext();
 
@@ -74,7 +72,6 @@ namespace EntityFramework.Services
             await using var context = _contextFactory.CreateDbContext();
 
             var user = await context.Users
-                .Include(x => x.Shares)
                 .FirstOrDefaultAsync(x => x.Email == email);
 
             return user;
@@ -85,17 +82,32 @@ namespace EntityFramework.Services
             await using var context = _contextFactory.CreateDbContext();
 
             var user = await context.Users
-                .Include(x => x.Shares)
-                .FirstOrDefaultAsync(x => x.Username == username);
+                .FirstOrDefaultAsync(x => x.FirstName == username);
 
             return user;
         }
 
-        public async Task<bool> AddShare(int userId, Guid shareId)
+        /*public async Task<bool> SharePath(Guid userId, string path)
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            return false;
-        }
+            var user = await context.Users
+                .FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user.SharedPaths.FirstOrDefault(x => x == path) == null)
+            {
+                user.SharedPaths.Add(path);
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }*/
     }
 }

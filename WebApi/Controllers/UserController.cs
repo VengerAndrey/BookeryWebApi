@@ -2,6 +2,7 @@
 using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Services.Database;
 
 namespace WebApi.Controllers
 {

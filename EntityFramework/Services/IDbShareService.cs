@@ -3,7 +3,7 @@ using Domain.Services;
 
 namespace EntityFramework.Services
 {
-    public interface IDbShareService : IGuidDataService<Share>
+    /*public interface IDbShareService : IGuidDataService<Share>
     {
-    }
+    }*/
 }

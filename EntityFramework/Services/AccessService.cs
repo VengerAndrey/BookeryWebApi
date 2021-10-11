@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Services
 {
-    public class AccessService : IAccessService
+    /*public class AccessService : IAccessService
     {
         private readonly IDbContextFactory<ApiDbContext> _contextFactory;
 
@@ -38,5 +38,5 @@ namespace EntityFramework.Services
 
             return true;
         }
-    }
+    }*/
 }

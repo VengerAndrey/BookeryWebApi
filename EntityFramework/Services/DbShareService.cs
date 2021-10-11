@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFramework.Services
 {
-    public class DbShareService : IDbShareService
+    /*public class DbShareService : IDbShareService
     {
         private readonly IDbContextFactory<ApiDbContext> _contextFactory;
 
@@ -63,5 +63,5 @@ namespace EntityFramework.Services
 
             return true;
         }
-    }
+    }*/
 }

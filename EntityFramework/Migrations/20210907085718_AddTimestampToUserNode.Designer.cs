@@ -4,14 +4,16 @@ using EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EntityFramework.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210907085718_AddTimestampToUserNode")]
+    partial class AddTimestampToUserNode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,17 +53,8 @@ namespace EntityFramework.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long>("CreationTimestamp")
-                        .HasColumnType("bigint");
-
                     b.Property<bool>("IsDirectory")
                         .HasColumnType("bit");
-
-                    b.Property<long>("ModificationTimestamp")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid>("ModifiedById")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -77,8 +70,6 @@ namespace EntityFramework.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ModifiedById");
 
                     b.HasIndex("OwnerId");
 
@@ -139,12 +130,6 @@ namespace EntityFramework.Migrations
 
             modelBuilder.Entity("Domain.Models.Node", b =>
                 {
-                    b.HasOne("Domain.Models.User", "ModifiedBy")
-                        .WithMany("ModifiedNodes")
-                        .HasForeignKey("ModifiedById")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("Domain.Models.User", "Owner")
                         .WithMany("OwnedNodes")
                         .HasForeignKey("OwnerId")
@@ -155,8 +140,6 @@ namespace EntityFramework.Migrations
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("ModifiedBy");
 
                     b.Navigation("Owner");
 
@@ -199,8 +182,6 @@ namespace EntityFramework.Migrations
 
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
-                    b.Navigation("ModifiedNodes");
-
                     b.Navigation("OwnedNodes");
 
                     b.Navigation("UserNodes");

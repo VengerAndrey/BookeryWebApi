@@ -6,11 +6,12 @@ using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Exceptions;
+using WebApi.Services.Database;
 using WebApi.Services.Share;
 
 namespace WebApi.Controllers
 {
-    [ApiController]
+    /*[ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class ShareController : ControllerBase
@@ -106,5 +107,5 @@ namespace WebApi.Controllers
                 return Problem($"Can't update a share [Id={e.ShareId}, Name={e.ShareName}, OwnerId={e.OwnerId}].");
             }
         }
-    }
+    }*/
 }

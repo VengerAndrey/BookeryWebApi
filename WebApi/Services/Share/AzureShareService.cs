@@ -7,7 +7,7 @@ using Azure.Storage.Files.Shares.Models;
 
 namespace WebApi.Services.Share
 {
-    public class AzureShareService : IAzureShareService
+    /*public class AzureShareService : IAzureShareService
     {
         private readonly ShareServiceClient _shareServiceClient;
 
@@ -99,5 +99,5 @@ namespace WebApi.Services.Share
 
             return response.Status == (int) HttpStatusCode.Accepted;
         }
-    }
+    }*/
 }

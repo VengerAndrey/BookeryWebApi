@@ -6,7 +6,7 @@ using WebApi.Exceptions;
 
 namespace WebApi.Services.Share
 {
-    public class ShareService : IShareService
+    /*public class ShareService : IShareService
     {
         private readonly IAzureShareService _azureShareService;
         private readonly IDbShareService _dbShareService;
@@ -67,5 +67,5 @@ namespace WebApi.Services.Share
 
             return true;
         }
-    }
+    }*/
 }

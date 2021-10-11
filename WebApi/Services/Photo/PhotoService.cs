@@ -5,7 +5,7 @@ using Azure.Storage.Files.Shares;
 
 namespace WebApi.Services.Photo
 {
-    public class PhotoService : IPhotoService
+    /*public class PhotoService : IPhotoService
     {
         private readonly ShareDirectoryClient _directoryClient;
 
@@ -65,5 +65,5 @@ namespace WebApi.Services.Photo
 
             return true;
         }
-    }
+    }*/
 }

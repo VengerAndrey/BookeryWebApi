@@ -4,11 +4,12 @@ using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Services.Database;
 using WebApi.Services.Photo;
 
 namespace WebApi.Controllers
 {
-    [ApiController]
+    /*[ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class PhotoController : ControllerBase
@@ -46,5 +47,5 @@ namespace WebApi.Controllers
 
             return Ok(await _photoService.Set(user.Id, Path.GetExtension(file.FileName), file.OpenReadStream()));
         }
-    }
+    }*/
 }

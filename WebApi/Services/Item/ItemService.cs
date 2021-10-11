@@ -8,6 +8,7 @@ using WebApi.Common;
 
 namespace WebApi.Services.Item
 {
+    /*
     public class ItemService : IItemService
     {
         private readonly PathBuilder _pathBuilder;
@@ -19,12 +20,12 @@ namespace WebApi.Services.Item
             _pathBuilder = new PathBuilder();
         }
 
-        public async Task<Domain.Models.Item> GetItem(string path)
+        public async Task<Domain.Models.Node> GetItem(string path)
         {
             _pathBuilder.ParsePath(path);
             if (_pathBuilder.GetDepth(path) == 2)
             {
-                return new Domain.Models.Item
+                return new Domain.Models.Node
                 {
                     Name = "root",
                     IsDirectory = true,
@@ -38,13 +39,13 @@ namespace WebApi.Services.Item
             return items.First(x => x.Path.Replace("%20", " ") == path);
         }
 
-        public async Task<IEnumerable<Domain.Models.Item>> GetSubItems(string path)
+        public async Task<IEnumerable<Domain.Models.Node>> GetSubItems(string path)
         {
             _pathBuilder.ParsePath(path);
 
             if (_pathBuilder.IsFile())
             {
-                return new List<Domain.Models.Item>();
+                return new List<Domain.Models.Node>();
             }
 
             var directory = await GetPenultimateDirectoryClient(path);
@@ -64,12 +65,12 @@ namespace WebApi.Services.Item
                 }
             }
 
-            var items = new List<Domain.Models.Item>();
+            var items = new List<Domain.Models.Node>();
 
             await foreach (var shareFileItem in directory.GetFilesAndDirectoriesAsync())
             {
                 _pathBuilder.ParseUri(new Uri(directory.Uri + "/" + shareFileItem.Name));
-                items.Add(new Domain.Models.Item
+                items.Add(new Domain.Models.Node
                 {
                     Name = shareFileItem.Name,
                     IsDirectory = shareFileItem.IsDirectory,
@@ -81,7 +82,7 @@ namespace WebApi.Services.Item
             return items;
         }
 
-        public async Task<Domain.Models.Item> CreateDirectory(string path)
+        public async Task<Domain.Models.Node> CreateDirectory(string path)
         {
             var directory = await GetPenultimateDirectoryClient(path);
 
@@ -98,7 +99,7 @@ namespace WebApi.Services.Item
             {
                 _pathBuilder.ParseUri(createdDirectory.Uri);
 
-                return new Domain.Models.Item
+                return new Domain.Models.Node
                 {
                     Name = name,
                     IsDirectory = true,
@@ -110,7 +111,7 @@ namespace WebApi.Services.Item
             return null;
         }
 
-        public async Task<Domain.Models.Item> RenameFile(string path, string name)
+        public async Task<Domain.Models.Node> RenameFile(string path, string name)
         {
             if (_pathBuilder.GetLastNode(path) == name)
             {
@@ -144,7 +145,7 @@ namespace WebApi.Services.Item
             return null;
         }
 
-        public async Task<Domain.Models.Item> UploadFile(string path, string name, Stream content)
+        public async Task<Domain.Models.Node> UploadFile(string path, string name, Stream content)
         {
             _pathBuilder.ParsePath(path);
             if (_pathBuilder.IsFile())
@@ -164,7 +165,7 @@ namespace WebApi.Services.Item
                 _pathBuilder.ParseUri(directory.Uri);
                 _pathBuilder.AddNode(name);
 
-                return new Domain.Models.Item
+                return new Domain.Models.Node
                 {
                     Name = name,
                     IsDirectory = false,
@@ -281,5 +282,5 @@ namespace WebApi.Services.Item
 
             return false;
         }
-    }
+    }*/
 }

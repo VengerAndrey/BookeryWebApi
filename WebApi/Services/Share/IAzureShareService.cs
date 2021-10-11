@@ -2,7 +2,7 @@
 
 namespace WebApi.Services.Share
 {
-    public interface IAzureShareService : IGuidDataService<Domain.Models.Share>
+    /*public interface IAzureShareService : IGuidDataService<Domain.Models.Share>
     {
-    }
+    }*/
 }

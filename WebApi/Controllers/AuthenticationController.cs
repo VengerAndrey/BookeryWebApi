@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Domain.Models;
 using Domain.Models.DTOs.Requests;
 using Domain.Models.DTOs.Responses;
-using EntityFramework.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using WebApi.Services.Database;
 using WebApi.Services.JWT;
 
 namespace WebApi.Controllers
@@ -41,8 +41,10 @@ namespace WebApi.Controllers
 
             var claims = new[]
             {
-                new Claim("UserId", user.Id.ToString()),
-                new Claim(ClaimTypes.Name, authenticationRequest.Email)
+                new Claim("Id", user.Id.ToString()),
+                new Claim("Email", user.Email),
+                new Claim("LastName", user.LastName),
+                new Claim("FirstName", user.FirstName)
             };
 
             var response = _jwtService.Authenticate(authenticationRequest.Email, claims, DateTime.UtcNow);
@@ -98,17 +100,18 @@ namespace WebApi.Controllers
                 return SignUpResult.EmailAlreadyExists;
             }
 
-            user = await _userService.GetByUsername(signUpRequest.Username);
+            /*user = await _userService.GetByUsername(signUpRequest.Username);
 
             if (user != null)
             {
                 return SignUpResult.UsernameAlreadyExists;
-            }
+            }*/
 
             await _userService.Create(new User
             {
                 Email = signUpRequest.Email,
-                Username = signUpRequest.Username,
+                LastName = signUpRequest.LastName,
+                FirstName = signUpRequest.FirstName,
                 Password = signUpRequest.Password
             });
 

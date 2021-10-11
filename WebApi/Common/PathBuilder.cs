@@ -101,6 +101,10 @@ namespace WebApi.Common
 
         public void ParsePath(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = "";
+            }
             _path = path;
             if (_path.EndsWith("/"))
             {
@@ -111,6 +115,11 @@ namespace WebApi.Common
         public bool IsFile()
         {
             return _path.Contains(".");
+        }
+
+        public bool IsFile(string path)
+        {
+            return path.Contains(".");
         }
 
         public bool IsLastNode()
