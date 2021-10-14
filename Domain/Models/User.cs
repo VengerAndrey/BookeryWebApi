@@ -16,6 +16,8 @@ namespace Domain.Models
         [JsonIgnore]
         public ICollection<Node> ModifiedNodes { get; set; } = new List<Node>();
         [JsonIgnore]
+        public ICollection<Node> CreatedNodes { get; set; } = new List<Node>();
+        [JsonIgnore]
         public ICollection<UserNode> UserNodes { get; set; } = new List<UserNode>();
     }
 }

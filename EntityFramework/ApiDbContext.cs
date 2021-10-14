@@ -61,6 +61,13 @@ namespace EntityFramework
                 .HasForeignKey(x => x.ModifiedById)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder
+                .Entity<Node>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany(x => x.CreatedNodes)
+                .HasForeignKey(x => x.CreatedById)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder
                 .Entity<User>()

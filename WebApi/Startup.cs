@@ -1,7 +1,6 @@
 using System;
 using Azure.Storage.Files.Shares;
 using EntityFramework;
-using EntityFramework.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,10 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
 using WebApi.Services.Database;
-using WebApi.Services.Item;
 using WebApi.Services.JWT;
-using WebApi.Services.Photo;
-using WebApi.Services.Share;
 using WebApi.Services.Storage;
 
 namespace WebApi
@@ -62,12 +58,6 @@ namespace WebApi
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<IUserNodeService, UserNodeService>();
             services.AddSingleton<IStorage, LocalStorage>();
-            //services.AddSingleton<IAzureShareService, AzureShareService>();
-            //services.AddSingleton<IDbShareService, DbShareService>();
-            //services.AddSingleton<IShareService, ShareService>();
-            //services.AddSingleton<IItemService, ItemService>();
-            //services.AddSingleton<IAccessService, AccessService>();
-            //services.AddSingleton<IPhotoService, PhotoService>();
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();

@@ -64,6 +64,7 @@ namespace WebApi.Controllers
 
                 create.OwnerId = user.Id;
                 create.ModifiedById = user.Id;
+                create.CreatedById = user.Id;
 
                 if (!nodeResult.LevelTree.IsRoot)
                 {

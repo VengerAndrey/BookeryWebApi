@@ -21,6 +21,9 @@ namespace Domain.Models
         public long CreationTimestamp { get; set; }
         public long ModificationTimestamp { get; set; }
         [JsonIgnore]
+        public User CreatedBy { get; set; }
+        public Guid CreatedById { get; set; }
+        [JsonIgnore]
         public User ModifiedBy { get; set; }
         public Guid ModifiedById { get; set; }
         [JsonIgnore]
