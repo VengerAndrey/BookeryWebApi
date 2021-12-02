@@ -2,7 +2,7 @@
 
 ### Idea
 
-**Bookery** --- is a multiplatform application that in general stands for a cloud drive. It uses a hierarchical storage, supports basic operations like upload/download/rename/delete and supports *sharing*. It is possible to share and hide nodes (folders or files) recursively.
+**Bookery** &mdash; is a multiplatform application that in general stands for a cloud drive. It uses a hierarchical storage, supports basic operations like upload/download/rename/delete and supports *sharing*. It is possible to share and hide nodes (folders or files) recursively.
 
 ### Module info
 
