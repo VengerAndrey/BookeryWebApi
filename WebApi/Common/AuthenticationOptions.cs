@@ -10,6 +10,7 @@ namespace WebApi.Common
         public const int AccessTokenExpiration = 600;
         public const int RefreshTokenExpiration = 3000;
 
+        // must be stored in a secure place
         private const string Key = "abcdefd12345!$%";
 
         public static SymmetricSecurityKey GetSymmetricSecurityKey()
