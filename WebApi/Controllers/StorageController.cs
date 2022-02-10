@@ -6,13 +6,15 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using WebApi.Services.Database;
 using WebApi.Services.Storage;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]/{id}")]
+    [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class StorageController : ControllerBase
     {
         private readonly IStorage _storage;
@@ -29,6 +31,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Route("{id}")]
         public async Task<IActionResult> Upload(Guid id, [FromForm] IFormFile file)
         {
             var user = await GetUser(User);
@@ -69,6 +72,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Route("{id}")]
         public async Task<IActionResult> Download(Guid id)
         {
             var user = await GetUser(User);
@@ -99,6 +103,44 @@ namespace WebApi.Controllers
             }
 
             return Forbid();
+        }
+
+        [HttpGet]
+        [Route("photo/{id}")]
+        public IActionResult DownloadProfilePhoto(Guid id)
+        {
+            var stream = _storage.Download(id);
+            if (stream == Stream.Null)
+            {
+                return NotFound();
+            }
+
+            return File(stream, "application/octet-stream");
+        }
+
+        [HttpPost]
+        [Route("photo/{id}")]
+        public async Task<IActionResult> UploadProfilePhoto(Guid id, [FromForm] IFormFile file)
+        {
+            var user = await GetUser(User);
+            if (user is null)
+            {
+                return Unauthorized();
+            }
+
+            if (user.Id != id)
+            {
+                return Forbid();
+            }
+
+            var result = await _storage.Upload(id, file.OpenReadStream());
+
+            if (result)
+            {
+                return Ok();
+            }
+
+            return Problem();
         }
 
         private async Task<User> GetUser(ClaimsPrincipal principal)
