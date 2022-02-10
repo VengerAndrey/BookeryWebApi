@@ -46,7 +46,7 @@ namespace WebApi.Controllers
 
             var virtualRoot = allNodes.ToTree((parent, child) => child.ParentId == parent.Id);
 
-            var levelTree = TreeExtensions.GetLevelTree(virtualRoot, path);
+            var levelTree = TreeExtensions.GetLevelTree(virtualRoot, path, true);
 
             if (levelTree is null)
             {
@@ -84,12 +84,40 @@ namespace WebApi.Controllers
             return new JsonResult(userNodes);
         }
 
+        [HttpGet]
+        [Route("details/{id}")]
+        public async Task<IActionResult> GetDetails(Guid id)
+        {
+            var user = await GetUser(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var userNode = (await _userNodeService.GetAll())
+                .FirstOrDefault(x => x.UserId == user.Id && x.NodeId == id);
+            
+            if (userNode is null)
+            {
+                return NotFound();
+            }
+
+            var node = await _nodeService.Get(id);
+
+            if (node is null)
+            {
+                return NotFound();
+            }
+
+            return new JsonResult(node);
+        }
+
         [HttpPost]
         [Route("create/{*path}")]
         public async Task<IActionResult> Create(string path, [FromBody] Node create)
         {
             var user = await GetUser(User);
-            var userNodeResult = await GetSharedNode(user, path, false);
+            var userNodeResult = await GetSharedNode(user, path, false, true);
 
             if (userNodeResult.ActionResult != null)
             {
@@ -216,7 +244,7 @@ namespace WebApi.Controllers
             return Accepted();
         }
 
-        [HttpDelete]
+        [HttpPost]
         [Route("hide")]
         public async Task<IActionResult> Hide([FromBody] UserNode userNode)
         {
@@ -352,7 +380,7 @@ namespace WebApi.Controllers
             return await _userService.Get(userId);
         }
 
-        private async Task<UserNodeResult> GetSharedNode(User user, string path, bool isPreLevelTree)
+        private async Task<UserNodeResult> GetSharedNode(User user, string path, bool isPreLevelTree, bool differentRoots = false)
         {
             var userNodeResult = new UserNodeResult();
 
@@ -374,7 +402,7 @@ namespace WebApi.Controllers
                 _pathBuilder.GetLastNode();
             }
 
-            var levelTree = TreeExtensions.GetLevelTree(virtualRoot, _pathBuilder.GetPath());
+            var levelTree = TreeExtensions.GetLevelTree(virtualRoot, _pathBuilder.GetPath(), differentRoots);
 
             if (levelTree is null)
             {

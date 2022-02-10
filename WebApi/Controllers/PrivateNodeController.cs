@@ -17,14 +17,12 @@ namespace WebApi.Controllers
     {
         private readonly INodeService _nodeService;
         private readonly IUserService _userService;
-        private readonly IUserNodeService _userNodeService;
         private readonly PathBuilder _pathBuilder;
 
         public PrivateNodeController(INodeService nodeService, IUserService userService, IUserNodeService userNodeService)
         {
             _nodeService = nodeService;
             _userService = userService;
-            _userNodeService = userNodeService;
             _pathBuilder = new PathBuilder();
         }
 

@@ -72,7 +72,7 @@ namespace WebApi.Common
             return null;
         }
 
-        public static ITree<Node> GetLevelTree(ITree<Node> virtualRoot, string path)
+        public static ITree<Node> GetLevelTree(ITree<Node> virtualRoot, string path, bool differentRoots = false)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -80,6 +80,7 @@ namespace WebApi.Common
             }
 
             var pathBuilder = new PathBuilder();
+            bool isRootChecked = false;
 
             var temp = virtualRoot;
             pathBuilder.ParsePath(path);
@@ -90,6 +91,13 @@ namespace WebApi.Common
 
                 foreach (var child in temp.Children)
                 {
+                    if (!isRootChecked && child.Data.Id.ToString() == topNodeName)
+                    {
+                        temp = child;
+                        found = true;
+                        isRootChecked = true;
+                        break;
+                    }
                     if (child.Data.Name == topNodeName)
                     {
                         temp = child;
