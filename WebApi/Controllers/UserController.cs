@@ -36,6 +36,22 @@ namespace WebApi.Controllers
             return Ok(user);
         }
 
+        [HttpGet]
+        [Route("{email}")]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            var user = await _userService.GetByEmail(email);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            user.Password = null;
+
+            return new JsonResult(user);
+        }
+
         private async Task<User> GetUser(ClaimsPrincipal principal)
         {
             var userIdString = principal.FindFirst("Id")?.Value;

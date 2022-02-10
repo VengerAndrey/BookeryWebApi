@@ -76,38 +76,5 @@ namespace WebApi.Services.Database
 
             return user;
         }
-
-        public async Task<User> GetByUsername(string username)
-        {
-            await using var context = _contextFactory.CreateDbContext();
-
-            var user = await context.Users
-                .FirstOrDefaultAsync(x => x.FirstName == username);
-
-            return user;
-        }
-
-        /*public async Task<bool> SharePath(Guid userId, string path)
-        {
-            await using var context = _contextFactory.CreateDbContext();
-
-            var user = await context.Users
-                .FirstOrDefaultAsync(x => x.Id == userId);
-
-            if (user.SharedPaths.FirstOrDefault(x => x == path) == null)
-            {
-                user.SharedPaths.Add(path);
-            }
-
-            try
-            {
-                await context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-        }*/
     }
 }
