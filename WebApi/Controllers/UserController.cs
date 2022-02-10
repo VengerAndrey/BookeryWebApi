@@ -37,10 +37,26 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("{email}")]
+        [Route("email/{email}")]
         public async Task<IActionResult> GetByEmail(string email)
         {
             var user = await _userService.GetByEmail(email);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            user.Password = null;
+
+            return new JsonResult(user);
+        }
+
+        [HttpGet]
+        [Route("id/{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var user = await _userService.Get(id);
 
             if (user is null)
             {
