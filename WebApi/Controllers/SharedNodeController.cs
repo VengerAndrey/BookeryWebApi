@@ -124,8 +124,13 @@ namespace WebApi.Controllers
                 return userNodeResult.ActionResult;
             }
 
-            if (userNodeResult.LevelTree.Children.All(x => x.Data.Name != create.Name) && userNodeResult.UserNode.AccessTypeId == AccessTypeId.Write)
+            if (userNodeResult.LevelTree.Children.All(x => x.Data.Name != create.Name))
             {
+                if (userNodeResult.UserNode.AccessTypeId != AccessTypeId.Write)
+                {
+                    return Forbid();
+                }
+
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
                 _pathBuilder.ParsePath(path);
@@ -171,9 +176,13 @@ namespace WebApi.Controllers
                 return userNodeResult.ActionResult;
             }
 
-            if (userNodeResult.LevelTree.Children.Where(x => x.Data.Id != userNodeResult.Node.Id).All(x => x.Data.Name != update.Name) &&
-                userNodeResult.UserNode.AccessTypeId == AccessTypeId.Write)
+            if (userNodeResult.LevelTree.Children.Where(x => x.Data.Id != userNodeResult.Node.Id).All(x => x.Data.Name != update.Name))
             {
+                if (userNodeResult.UserNode.AccessTypeId != AccessTypeId.Write)
+                {
+                    return Forbid();
+                }
+
                 var entity = await _nodeService.Get(userNodeResult.Node.Id);
 
                 if (entity is null)
