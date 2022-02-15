@@ -8,6 +8,7 @@ using Domain.Models.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using WebApi.Common;
 using WebApi.Services.Database;
 using WebApi.Services.Hash;
 using WebApi.Services.JWT;
@@ -94,13 +95,18 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("sign-up")]
-        public async Task<SignUpResult> SignUp([FromBody] SignUpRequest signUpRequest)
+        public async Task<IActionResult> SignUp([FromBody] SignUpRequest signUpRequest)
         {
             var user = await _userService.GetByEmail(signUpRequest.Email);
 
             if (user != null)
             {
-                return SignUpResult.EmailAlreadyExists;
+                return BadRequest(SignUpResult.EmailAlreadyExists);
+            }
+
+            if (!EmailValidator.Validate(signUpRequest.Email))
+            {
+                return BadRequest(SignUpResult.InvalidEmail);
             }
             
             await _userService.Create(new User
@@ -111,7 +117,7 @@ namespace WebApi.Controllers
                 Password = _hasher.Hash(signUpRequest.Password)
             });
 
-            return SignUpResult.Success;
+            return Ok(SignUpResult.Success);
         }
 
         private async Task<ClaimsIdentity> GetIdentity(AuthenticationRequest authenticationRequest)

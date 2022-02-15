@@ -4,6 +4,6 @@
     {
         Success,
         EmailAlreadyExists,
-        UsernameAlreadyExists
+        InvalidEmail
     }
 }
