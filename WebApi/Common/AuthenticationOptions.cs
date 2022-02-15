@@ -11,7 +11,7 @@ namespace WebApi.Common
         public const int RefreshTokenExpiration = 3000;
 
         // must be stored in a secure place
-        private const string Key = "abcdefd12345!$%";
+        private const string Key = "ZOVa6jnmVUi69qyaT8jPjv9cUVwCbTXeQtOOTkbfCgn9QSbWTxeFX53tz8ougBPA";
 
         public static SymmetricSecurityKey GetSymmetricSecurityKey()
         {

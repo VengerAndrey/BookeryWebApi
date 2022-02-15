@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using WebApi.Services.Database;
+using WebApi.Services.Hash;
 using WebApi.Services.JWT;
 
 namespace WebApi.Controllers
@@ -19,11 +20,13 @@ namespace WebApi.Controllers
     {
         private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
+        private readonly IHasher _hasher;
 
-        public AuthenticationController(IJwtService jwtService, IUserService userService)
+        public AuthenticationController(IJwtService jwtService, IUserService userService, IHasher hasher)
         {
             _jwtService = jwtService;
             _userService = userService;
+            _hasher = hasher;
         }
 
         [HttpPost]
@@ -99,20 +102,13 @@ namespace WebApi.Controllers
             {
                 return SignUpResult.EmailAlreadyExists;
             }
-
-            /*user = await _userService.GetByUsername(signUpRequest.Username);
-
-            if (user != null)
-            {
-                return SignUpResult.UsernameAlreadyExists;
-            }*/
-
+            
             await _userService.Create(new User
             {
                 Email = signUpRequest.Email,
                 LastName = signUpRequest.LastName,
                 FirstName = signUpRequest.FirstName,
-                Password = signUpRequest.Password
+                Password = _hasher.Hash(signUpRequest.Password)
             });
 
             return SignUpResult.Success;
@@ -122,7 +118,9 @@ namespace WebApi.Controllers
         {
             var user = await _userService.GetByEmail(authenticationRequest.Email);
 
-            if (user is null || user.Password != authenticationRequest.Password)
+            var hashedPassword = _hasher.Hash(authenticationRequest.Password);
+
+            if (user is null || user.Password != hashedPassword)
             {
                 return null;
             }

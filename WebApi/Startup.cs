@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Common;
 using WebApi.Services.Database;
+using WebApi.Services.Hash;
 using WebApi.Services.JWT;
 using WebApi.Services.Storage;
 
@@ -61,6 +62,8 @@ namespace WebApi
 
             services.AddSingleton<IJwtService, JwtService>();
             services.AddHostedService<ExpiredTokenCleaner>();
+
+            services.AddSingleton<IHasher, Hasher>(provider => new Hasher(Configuration["Salt"]));
 
             /*services.AddSwaggerGen(c =>
             {
