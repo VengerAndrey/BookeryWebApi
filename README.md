@@ -6,7 +6,7 @@
 
 ### Module info
 
-This is the obsolete monolith main gateway of the whole app. It serves all client applications through a consistent API. The module is split into domain, data, and API layers. Authorization of clients is required.
+This is the obsolete monolith gateway of the whole app. It serves all client applications through a consistent API. The module is split into domain, data, and API layers. Authorization of clients is required.
 
 Preferably to use [`Bookery`](https://github.com/VengerAndrey/Bookery) microservices.
 
